@@ -9,35 +9,42 @@ import '../components/TranscodingSettingsScreen/transcode_switch.dart';
 import '../models/finamp_models.dart';
 import '../services/finamp_settings_helper.dart';
 
-class TranscodingSettingsScreen extends StatelessWidget {
+class TranscodingSettingsScreen extends StatefulWidget {
   const TranscodingSettingsScreen({super.key});
-
   static const routeName = "/settings/transcoding";
+  @override
+  State<TranscodingSettingsScreen> createState() =>
+      _TranscodingSettingsScreenState();
+}
 
+class _TranscodingSettingsScreenState extends State<TranscodingSettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(AppLocalizations.of(context)!.transcoding),
+        actions: [
+          FinampSettingsHelper.makeSettingsResetButtonWithDialog(
+              context, FinampSettingsHelper.resetTranscodingSettings)
+        ],
       ),
-      body: Scrollbar(
-        child: ListView(
-          children: [
-            const TranscodeSwitch(),
-            const BitrateSelector(),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                AppLocalizations.of(context)!.jellyfinUsesAACForTranscoding,
-                style: Theme.of(context).textTheme.bodySmall,
-                textAlign: TextAlign.center,
-              ),
+      body: ListView(
+        children: [
+          const TranscodeSwitch(),
+          const BitrateSelector(),
+          const StreamingTranscodeSegmentContainerDropdownListTile(),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              AppLocalizations.of(context)!.jellyfinUsesAACForTranscoding,
+              style: Theme.of(context).textTheme.bodySmall,
+              textAlign: TextAlign.center,
             ),
-            const DownloadTranscodeEnableDropdownListTile(),
-            const DownloadTranscodeCodecDropdownListTile(),
-            const DownloadBitrateSelector(),
-          ],
-        ),
+          ),
+          const DownloadTranscodeEnableDropdownListTile(),
+          const DownloadTranscodeCodecDropdownListTile(),
+          const DownloadBitrateSelector(),
+        ],
       ),
     );
   }
@@ -143,7 +150,6 @@ class DownloadTranscodeCodecDropdownListTile extends StatelessWidget {
         return ListTile(
           title:
               Text(AppLocalizations.of(context)!.downloadTranscodeCodecTitle),
-          subtitle: Text("AAC does not work until jellyfin 10.9"),
           trailing: DropdownButton<FinampTranscodingCodec>(
             value: finampSettings.downloadTranscodingProfile.codec,
             items: FinampTranscodingCodec.values
@@ -158,6 +164,45 @@ class DownloadTranscodeCodecDropdownListTile extends StatelessWidget {
               if (value != null) {
                 FinampSettings finampSettingsTemp = finampSettings;
                 finampSettingsTemp.downloadTranscodingCodec = value;
+                Hive.box<FinampSettings>("FinampSettings")
+                    .put("FinampSettings", finampSettingsTemp);
+              }
+            },
+          ),
+        );
+      },
+    );
+  }
+}
+
+class StreamingTranscodeSegmentContainerDropdownListTile
+    extends StatelessWidget {
+  const StreamingTranscodeSegmentContainerDropdownListTile({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<Box<FinampSettings>>(
+      valueListenable: FinampSettingsHelper.finampSettingsListener,
+      builder: (_, box, __) {
+        final finampSettings = box.get("FinampSettings")!;
+
+        return ListTile(
+          title: Text(
+              AppLocalizations.of(context)!.transcodingStreamingContainerTitle),
+          subtitle: Text(AppLocalizations.of(context)!
+              .transcodingStreamingContainerSubtitle),
+          trailing: DropdownButton<FinampSegmentContainer>(
+            value: finampSettings.transcodingSegmentContainer,
+            items: FinampSegmentContainer.values
+                .map((e) => DropdownMenuItem<FinampSegmentContainer>(
+                      value: e,
+                      child: Text(e.container!.toUpperCase()),
+                    ))
+                .toList(),
+            onChanged: (value) {
+              if (value != null) {
+                FinampSettings finampSettingsTemp = finampSettings;
+                finampSettingsTemp.transcodingSegmentContainer = value;
                 Hive.box<FinampSettings>("FinampSettings")
                     .put("FinampSettings", finampSettingsTemp);
               }

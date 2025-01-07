@@ -18,14 +18,14 @@ class DownloadDialog extends StatefulWidget {
     super.key,
     required this.item,
     required this.viewId,
-    required this.needsDirectory,
+    required this.downloadLocationId,
     required this.needsTranscode,
     required this.children,
   });
 
   final DownloadStub item;
   final String viewId;
-  final bool needsDirectory;
+  final String? downloadLocationId;
   final bool needsTranscode;
   final List<BaseItemDto>? children;
 
@@ -44,24 +44,38 @@ class DownloadDialog extends StatefulWidget {
     }
     bool needTranscode =
         FinampSettingsHelper.finampSettings.shouldTranscodeDownloads ==
-            TranscodeDownloadsSetting.ask;
-    bool needDownload = FinampSettingsHelper
-            .finampSettings.downloadLocationsMap.values
-            .where((element) =>
-                element.baseDirectory != DownloadLocationType.internalDocuments)
-            .length !=
-        1;
-    if (!needTranscode && !needDownload) {
+                TranscodeDownloadsSetting.ask &&
+            // Skip asking for transcode for image only collection
+            item.finampCollection?.type != FinampCollectionType.libraryImages &&
+            // Skip asking for transcode for metadata +image collection
+            item.finampCollection?.type !=
+                FinampCollectionType.allPlaylistsMetadata;
+    String? downloadLocation =
+        FinampSettingsHelper.finampSettings.defaultDownloadLocation;
+    if (!FinampSettingsHelper.finampSettings.downloadLocationsMap
+        .containsKey(downloadLocation)) {
+      downloadLocation = null;
+    }
+    if (downloadLocation == null) {
+      var locations = FinampSettingsHelper
+          .finampSettings.downloadLocationsMap.values
+          .where((element) =>
+              element.baseDirectory != DownloadLocationType.internalDocuments);
+      if (locations.length == 1) {
+        downloadLocation = locations.first.id;
+      }
+    }
+    if (!needTranscode && downloadLocation != null) {
       final downloadsService = GetIt.instance<DownloadsService>();
       var profile = FinampSettingsHelper
                   .finampSettings.shouldTranscodeDownloads ==
               TranscodeDownloadsSetting.always
           ? FinampSettingsHelper.finampSettings.downloadTranscodingProfile
           : DownloadProfile(transcodeCodec: FinampTranscodingCodec.original);
-      profile.downloadLocationId =
-          FinampSettingsHelper.finampSettings.internalSongDir.id;
-      GlobalSnackbar.message((scaffold) =>
-          AppLocalizations.of(scaffold)!.confirmDownloadStarted, isConfirmation: true);
+      profile.downloadLocationId = downloadLocation;
+      GlobalSnackbar.message(
+          (scaffold) => AppLocalizations.of(scaffold)!.confirmDownloadStarted,
+          isConfirmation: true);
       unawaited(downloadsService
           .addDownload(stub: item, viewId: viewId!, transcodeProfile: profile)
           // TODO only show the enqueued confirmation if the enqueuing took longer than ~10 seconds
@@ -75,17 +89,19 @@ class DownloadDialog extends StatefulWidget {
         children = await jellyfinApiHelper.getItems(
             parentItem: item.baseItem!,
             includeItemTypes: "Audio",
-            fields: "${jellyfinApiHelper.defaultFields},MediaSources");
+            fields:
+                "${jellyfinApiHelper.defaultFields},MediaSources,MediaStreams");
       }
       if (!context.mounted) return;
       await showDialog(
         context: context,
         builder: (context) => DownloadDialog._build(
-            item: item,
-            viewId: viewId!,
-            needsDirectory: needDownload,
-            needsTranscode: needTranscode,
-            children: children),
+          item: item,
+          viewId: viewId!,
+          downloadLocationId: downloadLocation,
+          needsTranscode: needTranscode,
+          children: children,
+        ),
       );
     }
   }
@@ -105,31 +121,34 @@ class _DownloadDialogState extends State<DownloadDialog> {
         DownloadProfile(transcodeCodec: FinampTranscodingCodec.original);
 
     if (widget.children != null) {
-      final originalFileSize = widget.children!
-          .map((e) => e.mediaSources?.first.size ?? 0)
-          .fold(0, (a, b) => a + b);
-
       final transcodedFileSize = widget.children!
           .map((e) => e.mediaSources?.first.transcodedSize(FinampSettingsHelper
               .finampSettings.downloadTranscodingProfile.bitrateChannels))
           .fold(0, (a, b) => a + (b ?? 0));
-
-      final originalFileSizeFormatted = FileSize.getSize(
-        originalFileSize,
-        precision: PrecisionValue.None,
-      );
-
-      final formats = widget.children!
-          .map((e) => e.mediaSources?.first.mediaStreams.first.codec)
-          .toSet();
 
       transcodeDescription = FileSize.getSize(
         transcodedFileSize,
         precision: PrecisionValue.None,
       );
 
-      originalDescription =
-          "$originalFileSizeFormatted ${formats.length == 1 ? formats.first!.toUpperCase() : "null"}";
+      final originalFileSize = widget.children!
+          .map((e) => e.mediaSources?.first.size ?? 0)
+          .fold(0, (a, b) => a + b);
+
+      final originalFileSizeFormatted = FileSize.getSize(
+        originalFileSize,
+        precision: PrecisionValue.None,
+      );
+
+      originalDescription = originalFileSizeFormatted;
+
+      final formats = widget.children!
+          .map((e) => e.mediaSources?.first.mediaStreams.first.codec)
+          .toSet();
+
+      if (formats.length == 1) {
+        originalDescription += " ${formats.first!.toUpperCase()}";
+      }
     }
 
     return AlertDialog(
@@ -137,7 +156,7 @@ class _DownloadDialogState extends State<DownloadDialog> {
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (widget.needsDirectory)
+          if (widget.downloadLocationId == null)
             DropdownButton<DownloadLocation>(
                 hint: Text(AppLocalizations.of(context)!.location),
                 isExpanded: true,
@@ -186,7 +205,7 @@ class _DownloadDialogState extends State<DownloadDialog> {
         ),
         TextButton(
           onPressed: (selectedDownloadLocation == null &&
-                      widget.needsDirectory) ||
+                      widget.downloadLocationId == null) ||
                   (transcode == null && widget.needsTranscode)
               ? null
               : () async {
@@ -199,9 +218,8 @@ class _DownloadDialogState extends State<DownloadDialog> {
                               TranscodeDownloadsSetting.always)!
                       ? transcodeProfile
                       : originalProfile;
-                  profile.downloadLocationId = widget.needsDirectory
-                      ? selectedDownloadLocation!.id
-                      : FinampSettingsHelper.finampSettings.internalSongDir.id;
+                  profile.downloadLocationId =
+                      widget.downloadLocationId ?? selectedDownloadLocation!.id;
                   await downloadsService
                       .addDownload(
                           stub: widget.item,

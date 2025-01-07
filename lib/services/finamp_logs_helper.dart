@@ -14,10 +14,11 @@ class FinampLogsHelper {
   final List<LogRecord> logs = [];
   IOSink? _logFileWriter;
 
-  // Logging to a file is currently disabled.
   Future<void> openLog() async {
     WidgetsFlutterBinding.ensureInitialized();
-    final basePath = await getApplicationDocumentsDirectory();
+    final basePath = (Platform.isAndroid || Platform.isIOS)
+        ? await getApplicationDocumentsDirectory()
+        : await getApplicationSupportDirectory();
     final logFile = File(path_helper.join(basePath.path, "finamp-logs.txt"));
     if (logFile.existsSync() && logFile.lengthSync() >= 1024 * 1024 * 10) {
       logFile
@@ -33,7 +34,7 @@ class FinampLogsHelper {
       var message = log.censoredMessage;
       if (log.stackTrace == null) {
         // Truncate long messages from chopper, but leave long stack traces
-        message = message.substring(0, min(1024, message.length));
+        message = message.substring(0, min(1024 * 5, message.length));
       }
       _logFileWriter!.writeln(message);
     }
@@ -65,7 +66,9 @@ class FinampLogsHelper {
     tempFile.createSync();
 
     if (_logFileWriter != null) {
-      final basePath = await getApplicationDocumentsDirectory();
+      final basePath = (Platform.isAndroid || Platform.isIOS)
+          ? await getApplicationDocumentsDirectory()
+          : await getApplicationSupportDirectory();
       var oldLogs =
           File(path_helper.join(basePath.path, "finamp-logs-old.txt"));
       var newLogs = File(path_helper.join(basePath.path, "finamp-logs.txt"));

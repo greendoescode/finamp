@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'dart:io' show HttpClient, Platform;
 
-import 'package:android_id/android_id.dart';
+import 'package:app_set_id/app_set_id.dart';
 import 'package:chopper/chopper.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:finamp/models/finamp_models.dart';
 import 'package:finamp/services/http_aggregate_logging_interceptor.dart';
 import 'package:get_it/get_it.dart';
 import 'package:http/io_client.dart' as http;
@@ -117,6 +119,10 @@ abstract class JellyfinApi extends ChopperService {
     /// Optional. If specified, results will be filtered to include only those
     /// containing the specified album id.
     @Query("AlbumIds") String? albumIds,
+
+    /// Optional. If specified, results will be filtered to include only those
+    /// containing the specified genre id.
+    @Query("GenreIds") String? genreIds,
     @Query("ids") String? ids,
 
     /// When searching within folders, this determines whether or not the search
@@ -152,10 +158,6 @@ abstract class JellyfinApi extends ChopperService {
 
     /// Optional. Filter based on a search term.
     @Query("SearchTerm") String? searchTerm,
-
-    /// Optional. If specified, results will be filtered based on genre id. This
-    /// allows multiple, pipe delimited.
-    @Query("GenreIds") String? genreIds,
 
     /// Items Enum: "IsFolder" "IsNotFolder" "IsUnplayed" "IsPlayed"
     /// "IsFavorite" "IsResumable" "Likes" "Dislikes" "IsFavoriteOrLikes"
@@ -329,6 +331,64 @@ abstract class JellyfinApi extends ChopperService {
     request: JsonConverter.requestFactory,
     response: JsonConverter.responseFactory,
   )
+  @Get(path: "/Artists")
+  Future<dynamic> getArtists({
+    /// Specify this to localize the search to a specific item or folder. Omit
+    /// to use the root.
+    @Query("ParentId") String? parentId,
+
+    /// Optional. Specify one or more sort orders, comma delimited. Options:
+    /// Album, AlbumArtist, Artist, Budget, CommunityRating, CriticRating,
+    /// DateCreated, DatePlayed, PlayCount, PremiereDate, ProductionYear,
+    /// SortName, Random, Revenue, Runtime.
+    @Query("SortBy") String? sortBy,
+
+    /// Items Enum: "Ascending" "Descending"
+    /// Sort Order - Ascending,Descending.
+    @Query("SortOrder") String? sortOrder,
+
+    /// Items Enum: "AirTime" "CanDelete" "CanDownload" "ChannelInfo" "Chapters"
+    /// "ChildCount" "CumulativeRunTimeTicks" "CustomRating" "DateCreated"
+    /// "DateLastMediaAdded" "DisplayPreferencesId" "Etag" "ExternalUrls"
+    /// "Genres" "HomePageUrl" "ItemCounts" "MediaSourceCount" "MediaSources"
+    /// "OriginalTitle" "Overview" "ParentId" "Path" "People" "PlayAccess"
+    /// "ProductionLocations" "ProviderIds" "PrimaryImageAspectRatio"
+    /// "RecursiveItemCount" "Settings" "ScreenshotImageTags"
+    /// "SeriesPrimaryImage" "SeriesStudio" "SortName" "SpecialEpisodeNumbers"
+    /// "Studios" "BasicSyncInfo" "SyncInfo" "Taglines" "Tags" "RemoteTrailers"
+    /// "MediaStreams" "SeasonUserData" "ServiceName" "ThemeSongIds"
+    /// "ThemeVideoIds" "ExternalEtag" "PresentationUniqueKey"
+    /// "InheritedParentalRatingValue" "ExternalSeriesId"
+    /// "SeriesPresentationUniqueKey" "DateLastRefreshed" "DateLastSaved"
+    /// "RefreshState" "ChannelImage" "EnableMediaSourceDisplay" "Width"
+    /// "Height" "ExtraIds" "LocalTrailerCount" "IsHD" "SpecialFeatureCount"
+    @Query("Fields") String? fields = defaultFields,
+
+    /// Optional. Filter based on a search term.
+    @Query("SearchTerm") String? searchTerm,
+
+    /// Items Enum: "IsFolder" "IsNotFolder" "IsUnplayed" "IsPlayed"
+    /// "IsFavorite" "IsResumable" "Likes" "Dislikes" "IsFavoriteOrLikes"
+    /// Optional. Specify additional filters to apply. This allows multiple,
+    /// comma delimited. Options: IsFolder, IsNotFolder, IsUnplayed, IsPlayed,
+    /// IsFavorite, IsResumable, Likes, Dislikes.
+    @Query("Filters") String? filters,
+
+    /// Optional. The record index to start at. All items with a lower index
+    /// will be dropped from the results.
+    @Query("StartIndex") int? startIndex,
+
+    /// Optional. The maximum number of records to return.
+    @Query("Limit") int? limit,
+
+    /// Optional. If enabled, only favorite artists will be returned.
+    @Query("IsFavorite") bool? isFavorite,
+  });
+
+  @FactoryConverter(
+    request: JsonConverter.requestFactory,
+    response: JsonConverter.responseFactory,
+  )
   @Get(path: "/Artists/AlbumArtists")
   Future<dynamic> getAlbumArtists({
     @Query("IncludeItemTypes") String? includeItemTypes,
@@ -436,6 +496,17 @@ abstract class JellyfinApi extends ChopperService {
     @Path() required String itemId,
   });
 
+  /// Requests lyrics for a song.
+  @FactoryConverter(
+    request: JsonConverter.requestFactory,
+    response: JsonConverter.responseFactory,
+  )
+  @Get(path: "/Audio/{itemId}/Lyrics")
+  Future<dynamic> getLyrics({
+    /// The item id.
+    @Path() required String itemId,
+  });
+
   /// Reports that a session has ended.
   @FactoryConverter(
     request: JsonConverter.requestFactory,
@@ -450,7 +521,8 @@ abstract class JellyfinApi extends ChopperService {
     final client = ChopperClient(
       client: http.IOClient(HttpClient()
             ..connectionTimeout = const Duration(
-                seconds: 8) // if we don't get a response by then, it's probably not worth it to wait any longer. this prevents the server connection test from taking too long
+                seconds:
+                    10) // if we don't get a response by then, it's probably not worth it to wait any longer. this prevents the server connection test from taking too long
           ),
       // The first part of the URL is now here
       services: [
@@ -461,40 +533,54 @@ abstract class JellyfinApi extends ChopperService {
       // converter: JsonConverter(),
       interceptors: [
         /// Gets baseUrl from SharedPreferences.
-        (Request request) {
-          final finampUserHelper = GetIt.instance<FinampUserHelper>();
-          Uri? baseUrlTemp;
-          if (inForeground) {
-            final jellyfinApiHelper = GetIt.instance<JellyfinApiHelper>();
-            baseUrlTemp = jellyfinApiHelper.baseUrlTemp;
-          }
-
-          String authHeader = finampUserHelper.authorizationHeader;
-
-          // If baseUrlTemp is null, use the baseUrl of the current user.
-          // If baseUrlTemp is set, we're setting up a new user and should use it instead.
-          Uri baseUri =
-              baseUrlTemp ?? Uri.parse(finampUserHelper.currentUser!.baseUrl);
-
-          // Add the request path on to the baseUrl
-          baseUri = baseUri.replace(
-              pathSegments:
-                  baseUri.pathSegments.followedBy(request.uri.pathSegments));
-
-          return request.copyWith(
-            uri: baseUri,
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": authHeader,
-            },
-          );
-        },
+        JellyfinInterceptor(inForeground),
         HttpAggregateLoggingInterceptor(level: chopperHttpLogLevel),
       ],
     );
 
     // The generated class with the ChopperClient passed in
     return _$JellyfinApi(client);
+  }
+}
+
+class JellyfinInterceptor implements Interceptor {
+  JellyfinInterceptor(this.inForeground);
+
+  final bool inForeground;
+
+  @override
+  FutureOr<Response<BodyType>> intercept<BodyType>(
+      Chain<BodyType> chain) async {
+    return await chain.proceed(updateRequest(chain.request));
+  }
+
+  Request updateRequest(Request request) {
+    final finampUserHelper = GetIt.instance<FinampUserHelper>();
+    Uri? baseUrlTemp;
+    if (inForeground) {
+      final jellyfinApiHelper = GetIt.instance<JellyfinApiHelper>();
+      baseUrlTemp = jellyfinApiHelper.baseUrlTemp;
+    }
+
+    String authHeader = finampUserHelper.authorizationHeader;
+
+    // If baseUrlTemp is null, use the baseUrl of the current user.
+    // If baseUrlTemp is set, we're setting up a new user and should use it instead.
+    Uri baseUri =
+        baseUrlTemp ?? Uri.parse(finampUserHelper.currentUser!.baseUrl);
+
+    // Add the request path on to the baseUrl
+    baseUri = baseUri.replace(
+        pathSegments:
+            baseUri.pathSegments.followedBy(request.uri.pathSegments));
+
+    return request.copyWith(
+      uri: baseUri,
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": authHeader,
+      },
+    );
   }
 }
 
@@ -516,20 +602,10 @@ Future<String> getAuthHeader() async {
   }
 
   authHeader = '${authHeader}Client="Finamp", ';
-  DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
-  if (Platform.isAndroid) {
-    AndroidDeviceInfo androidDeviceInfo = await deviceInfo.androidInfo;
-    authHeader = '${authHeader}Device="${androidDeviceInfo.model}", ';
-    final androidId = await const AndroidId().getId();
-    authHeader = '${authHeader}DeviceId="$androidId", ';
-  } else if (Platform.isIOS) {
-    IosDeviceInfo iosDeviceInfo = await deviceInfo.iosInfo;
-    authHeader = '${authHeader}Device="${iosDeviceInfo.name}", ';
-    authHeader =
-        '${authHeader}DeviceId="${iosDeviceInfo.identifierForVendor}", ';
-  } else {
-    throw "getAuthHeader() only supports Android and iOS";
-  }
+
+  final deviceInfo = await getDeviceInfo();
+  authHeader =
+      '${authHeader}Device="${deviceInfo.name}",DeviceId="${deviceInfo.id}", ';
 
   PackageInfo packageInfo = await PackageInfo.fromPlatform();
   authHeader = '${authHeader}Version="${packageInfo.version}"';
@@ -537,4 +613,50 @@ Future<String> getAuthHeader() async {
   // In some cases non-ASCII characters can end up in the header, usually via
   // iOS device name
   return authHeader.replaceAll(notAsciiRegex, "_");
+}
+
+// return type for deviceInfo
+
+Future<DeviceInfo> getDeviceInfo() async {
+  DeviceInfo info;
+  DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+  if (Platform.isAndroid) {
+    AndroidDeviceInfo androidDeviceInfo = await deviceInfo.androidInfo;
+    final appSetId = await AppSetId().getIdentifier();
+    info = DeviceInfo(
+      name: androidDeviceInfo.model,
+      id: appSetId,
+    );
+  } else if (Platform.isIOS) {
+    IosDeviceInfo iosDeviceInfo = await deviceInfo.iosInfo;
+    final appSetId = await AppSetId().getIdentifier();
+    info = DeviceInfo(
+      name: iosDeviceInfo.name,
+      id: appSetId,
+    );
+  } else if (Platform.isWindows) {
+    WindowsDeviceInfo windowsDeviceInfo = await deviceInfo.windowsInfo;
+    final windowsId = windowsDeviceInfo.deviceId;
+    info = DeviceInfo(
+      name: windowsDeviceInfo.computerName,
+      id: windowsId,
+    );
+  } else if (Platform.isLinux) {
+    LinuxDeviceInfo linuxDeviceInfo = await deviceInfo.linuxInfo;
+    final linuxId = linuxDeviceInfo.machineId;
+    info = DeviceInfo(
+      name: linuxDeviceInfo.name,
+      id: linuxId,
+    );
+  } else if (Platform.isMacOS) {
+    MacOsDeviceInfo macOsDeviceInfo = await deviceInfo.macOsInfo;
+    final macId = macOsDeviceInfo.systemGUID;
+    info = DeviceInfo(
+      name: macOsDeviceInfo.computerName,
+      id: macId,
+    );
+  } else {
+    throw Exception("Unsupported platform");
+  }
+  return info;
 }

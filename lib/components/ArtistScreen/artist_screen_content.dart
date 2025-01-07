@@ -14,6 +14,7 @@ import '../AlbumScreen/album_screen_content.dart';
 import '../AlbumScreen/download_button.dart';
 import '../albums_sliver_list.dart';
 import '../favourite_button.dart';
+import '../padded_custom_scrollview.dart';
 import 'artist_screen_content_flexible_space_bar.dart';
 
 class ArtistScreenContent extends StatefulWidget {
@@ -81,19 +82,21 @@ class _ArtistScreenContentState extends State<ArtistScreenContent> {
     } else {
       futures = Future.wait([
         // Get Songs sorted by Play Count
+        if (FinampSettingsHelper.finampSettings.showArtistsTopSongs)
+          jellyfinApiHelper.getItems(
+            parentItem: widget.parent,
+            filters: "Artist=${widget.parent.name}",
+            sortBy: "PlayCount,SortName",
+            sortOrder: "Descending",
+            includeItemTypes: "Audio",
+          )
+        else
+          Future.value(null),
+        // Get Albums sorted by Premiere Date
         jellyfinApiHelper.getItems(
           parentItem: widget.parent,
           filters: "Artist=${widget.parent.name}",
-          sortBy: "PlayCount",
-          sortOrder: "Descending",
-          includeItemTypes: "Audio",
-          limit: 5,
-        ),
-        // Get Albums sorted by Production Year
-        jellyfinApiHelper.getItems(
-          parentItem: widget.parent,
-          filters: "Artist=${widget.parent.name}",
-          sortBy: "ProductionYear",
+          sortBy: "PremiereDate,SortName",
           includeItemTypes: "MusicAlbum",
         ),
       ]);
@@ -110,18 +113,12 @@ class _ArtistScreenContentState extends State<ArtistScreenContent> {
         builder: (context, snapshot) {
           var songs = snapshot.data?.elementAtOrNull(0) ?? [];
           var albums = snapshot.data?.elementAtOrNull(1) ?? [];
-          var songsByPlaycount = allSongs.then((songs) {
-            var sortedsongs = List<BaseItemDto>.from(songs ?? []);
-            sortedsongs.sort(
-              (a, b) =>
-                  b.userData?.playCount.compareTo(a.userData?.playCount ?? 0) ??
-                  0,
-            );
-            return sortedsongs;
-          });
+          var topTracks = songs
+              .takeWhile((s) => (s.userData?.playCount ?? 0) > 0)
+              .take(5)
+              .toList();
 
-          return Scrollbar(
-              child: CustomScrollView(slivers: <Widget>[
+          return PaddedCustomScrollview(slivers: <Widget>[
             SliverAppBar(
               title: Text(widget.parent.name ??
                   AppLocalizations.of(context)!.unknownName),
@@ -150,7 +147,8 @@ class _ArtistScreenContentState extends State<ArtistScreenContent> {
                     children: albums.length)
               ],
             ),
-            if (!isOffline)
+            if (!isOffline &&
+                FinampSettingsHelper.finampSettings.showArtistsTopSongs)
               SliverPadding(
                   padding: EdgeInsets.fromLTRB(
                       6, widget.parent.type == "MusicGenre" ? 12 : 0, 6, 0),
@@ -160,10 +158,11 @@ class _ArtistScreenContentState extends State<ArtistScreenContent> {
                     style: const TextStyle(
                         fontSize: 18, fontWeight: FontWeight.bold),
                   ))),
-            if (!isOffline)
+            if (!isOffline &&
+                FinampSettingsHelper.finampSettings.showArtistsTopSongs)
               SongsSliverList(
-                childrenForList: songs,
-                childrenForQueue: songsByPlaycount,
+                childrenForList: topTracks,
+                childrenForQueue: Future.value(songs),
                 showPlayCount: true,
                 isOnArtistScreen: true,
                 parent: widget.parent,
@@ -179,13 +178,8 @@ class _ArtistScreenContentState extends State<ArtistScreenContent> {
             AlbumsSliverList(
               childrenForList: albums,
               parent: widget.parent,
-            ),
-            SliverToBoxAdapter(
-              child: Container(
-                height: MediaQuery.paddingOf(context).bottom,
-              ),
             )
-          ]));
+          ]);
         });
   }
 }

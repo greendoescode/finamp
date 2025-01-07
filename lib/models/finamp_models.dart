@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:audio_service/audio_service.dart';
 import 'package:background_downloader/background_downloader.dart';
 import 'package:collection/collection.dart';
+import 'package:finamp/components/global_snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:hive/hive.dart';
@@ -55,117 +56,213 @@ class FinampUser {
   BaseItemDto? get currentView => views[currentViewId];
 }
 
-// These consts are so that we can easily keep the same default for
-// FinampSettings's constructor and Hive's defaultValue.
-const _isOfflineDefault = false;
-const _shouldTranscodeDefault = false;
-const _transcodeBitrateDefault = 320000;
-const _androidStopForegroundOnPauseDefault = false;
-const _isFavouriteDefault = false;
-const _songShuffleItemCountDefault = 250;
-const _replayGainActiveDefault = true;
-// 3/4 volume in dB. In my testing, most tracks were louder than the default target
-// of -14.0 LUFS, so the gain rarely needed to be increased. -5.0 gives us a bit of
-// headroom in case we need to boost a track (since volume can't go above 1.0),
-// without reducing the volume too much.
-const _replayGainIOSBaseGainDefault = -5.0;
-const _replayGainTargetLufsDefault = -14.0;
-const _replayGainNormalizationFactorDefault = 1.0;
-const _replayGainModeDefault = ReplayGainMode.hybrid;
-const _contentViewType = ContentViewType.list;
-const _contentGridViewCrossAxisCountPortrait = 2;
-const _contentGridViewCrossAxisCountLandscape = 3;
-const _showTextOnGridView = true;
-const _sleepTimerSeconds = 1800; // 30 Minutes
-const _showCoverAsPlayerBackground = true;
-const _hideSongArtistsIfSameAsAlbumArtists = true;
-const _disableGesture = false;
-const _showFastScroller = true;
-const _bufferDurationSeconds = 600;
-const _tabOrder = TabContentType.values;
-const _swipeInsertQueueNext = true;
-const _defaultLoopMode = FinampLoopMode.none;
-const _autoLoadLastQueueOnStartup = true;
-const _shouldTranscodeDownloadsDefault = TranscodeDownloadsSetting.never;
-const _shouldRedownloadTranscodesDefault = false;
-const _defaultResyncOnStartup = true;
+class DefaultSettings {
+  // These consts are so that we can easily keep the same default for
+  // FinampSettings's constructor and Hive's defaultValue.
+  static const isOffline = false;
+  static const theme = ThemeMode.system;
+  static const shouldTranscode = false;
+  static const transcodeBitrate = 320000;
+  static const androidStopForegroundOnPause = true;
+  static const onlyShowFavourites = false;
+  static const songShuffleItemCount = 250;
+  static const volumeNormalizationActive = true;
+  // 80% volume in dB. In my testing, most tracks were louder than the default target
+  // of -18.0 LUFS, so the gain rarely needed to be increased. -2.0 gives us a bit of
+  // headroom in case we need to boost a track (since volume can't go above 1.0),
+  // without reducing the volume too much.
+  // Ideally the maximum gain in each library should be fetched from the server, and this volume should be adjusted accordingly
+  static const volumeNormalizationIOSBaseGain = -2.0;
+  static const volumeNormalizationMode = VolumeNormalizationMode.hybrid;
+  static const contentViewType = ContentViewType.list;
+  static const playbackSpeedVisibility = PlaybackSpeedVisibility.automatic;
+  static const contentGridViewCrossAxisCountPortrait = 2;
+  static const contentGridViewCrossAxisCountLandscape = 3;
+  static const showTextOnGridView = true;
+  static const sleepTimerSeconds = 1800; // 30 Minutes
+  static const useCoverAsBackground = true;
+  static const playerScreenCoverMinimumPadding = 1.5;
+  static const showArtistsTopSongs = true;
+  static const disableGesture = false;
+  static const showFastScroller = true;
+  static const bufferDurationSeconds = 600;
+  static const tabOrder = TabContentType.values;
+  static const swipeInsertQueueNext = true;
+  static const loopMode = FinampLoopMode.none;
+  static const playbackSpeed = 1.0;
+  static const autoLoadLastQueueOnStartup = true;
+  static const shouldTranscodeDownloads = TranscodeDownloadsSetting.ask;
+  static const shouldRedownloadTranscodes = false;
+  static const resyncOnStartup = true;
+  static const fixedGridTileSize = 150;
+  static const useFixedSizeGridTiles = false;
+  static const splitScreenPlayerWidth = 400.0;
+  static const enableVibration = true;
+  static const prioritizeCoverFactor = 8.0;
+  static const suppressPlayerPadding = false;
+  static const hidePlayerBottomActions = false;
+  static const reportQueueToServer = false;
+  static const periodicPlaybackSessionUpdateFrequencySeconds = 150;
+  static const showArtistChipImage = true;
+  static const trackOfflineFavorites = true;
+  static const showProgressOnNowPlayingBar = true;
+  static const startInstantMixForIndividualTracks = true;
+  static const showLyricsTimestamps = true;
+  static const lyricsAlignment = LyricsAlignment.start;
+  static const lyricsFontSize = LyricsFontSize.medium;
+  static const showLyricsScreenAlbumPrelude = true;
+  static const showStopButtonOnMediaNotification = false;
+  static const showSeekControlsOnMediaNotification = true;
+  static const keepScreenOnOption = KeepScreenOnOption.whileLyrics;
+  static const keepScreenOnWhilePluggedIn = true;
+  static const hasDownloadedPlaylistInfo = false;
+  static const transcodingSegmentContainer =
+      FinampSegmentContainer.fragmentedMp4;
+  static const featureChipsConfiguration =
+      FinampFeatureChipsConfiguration(enabled: true, features: [
+    FinampFeatureChipType.playCount,
+    FinampFeatureChipType.additionalPeople,
+    FinampFeatureChipType.playbackMode,
+    FinampFeatureChipType.codec,
+    FinampFeatureChipType.bitRate,
+    FinampFeatureChipType.bitDepth,
+    FinampFeatureChipType.sampleRate,
+    FinampFeatureChipType.size,
+    FinampFeatureChipType.normalizationGain,
+  ]);
+  static const showCoversOnAlbumScreen = false;
+  static const allowSplitScreen = true;
+  static const requireWifiForDownloads = false;
+  static const onlyShowFullyDownloaded = false;
+  static const preferQuickSyncs = true;
+  static const showDownloadsWithUnknownLibrary = true;
+  static const downloadWorkers = 5;
+  static const maxConcurrentDownloads = 10;
+}
 
 @HiveType(typeId: 28)
 class FinampSettings {
-  FinampSettings({
-    this.isOffline = _isOfflineDefault,
-    this.shouldTranscode = _shouldTranscodeDefault,
-    this.transcodeBitrate = _transcodeBitrateDefault,
-    // downloadLocations is required since the other values can be created with
-    // default values. create() is used to return a FinampSettings with
-    // downloadLocations.
-    required this.downloadLocations,
-    this.androidStopForegroundOnPause = _androidStopForegroundOnPauseDefault,
-    required this.showTabs,
-    this.onlyShowFavourite = _isFavouriteDefault,
-    this.sortBy = SortBy.sortName,
-    this.sortOrder = SortOrder.ascending,
-    this.songShuffleItemCount = _songShuffleItemCountDefault,
-    this.replayGainActive = _replayGainActiveDefault,
-    this.replayGainIOSBaseGain = _replayGainIOSBaseGainDefault,
-    this.replayGainTargetLufs = _replayGainTargetLufsDefault,
-    this.replayGainNormalizationFactor = _replayGainNormalizationFactorDefault,
-    this.replayGainMode = _replayGainModeDefault,
-    this.contentViewType = _contentViewType,
-    this.contentGridViewCrossAxisCountPortrait =
-        _contentGridViewCrossAxisCountPortrait,
-    this.contentGridViewCrossAxisCountLandscape =
-        _contentGridViewCrossAxisCountLandscape,
-    this.showTextOnGridView = _showTextOnGridView,
-    this.sleepTimerSeconds = _sleepTimerSeconds,
-    required this.downloadLocationsMap,
-    this.showCoverAsPlayerBackground = _showCoverAsPlayerBackground,
-    this.hideSongArtistsIfSameAsAlbumArtists =
-        _hideSongArtistsIfSameAsAlbumArtists,
-    this.bufferDurationSeconds = _bufferDurationSeconds,
-    required this.tabSortBy,
-    required this.tabSortOrder,
-    this.loopMode = _defaultLoopMode,
-    this.tabOrder = _tabOrder,
-    this.autoloadLastQueueOnStartup = _autoLoadLastQueueOnStartup,
-    this.hasCompletedBlurhashImageMigration = true,
-    this.hasCompletedBlurhashImageMigrationIdFix = true,
-    this.hasCompleteddownloadsServiceMigration = true,
-    this.requireWifiForDownloads = false,
-    this.onlyShowFullyDownloaded = false,
-    this.showDownloadsWithUnknownLibrary = true,
-    this.maxConcurrentDownloads = 10,
-    this.downloadWorkers = 5,
-    this.resyncOnStartup = _defaultResyncOnStartup,
-    this.preferQuickSyncs = true,
-    this.hasCompletedIsarUserMigration = true,
-    this.downloadTranscodingCodec,
-    this.downloadTranscodeBitrate,
-    this.shouldTranscodeDownloads = _shouldTranscodeDownloadsDefault,
-    this.shouldRedownloadTranscodes = _shouldRedownloadTranscodesDefault,
-    this.swipeInsertQueueNext = _swipeInsertQueueNext,
-  });
+  FinampSettings(
+      {this.isOffline = DefaultSettings.isOffline,
+      this.shouldTranscode = DefaultSettings.shouldTranscode,
+      this.transcodeBitrate = DefaultSettings.transcodeBitrate,
+      // downloadLocations is required since the other values can be created with
+      // default values. create() is used to return a FinampSettings with
+      // downloadLocations.
+      required this.downloadLocations,
+      this.androidStopForegroundOnPause =
+          DefaultSettings.androidStopForegroundOnPause,
+      required this.showTabs,
+      this.onlyShowFavourites = DefaultSettings.onlyShowFavourites,
+      this.sortBy = SortBy.sortName,
+      this.sortOrder = SortOrder.ascending,
+      this.songShuffleItemCount = DefaultSettings.songShuffleItemCount,
+      this.volumeNormalizationActive =
+          DefaultSettings.volumeNormalizationActive,
+      this.volumeNormalizationIOSBaseGain =
+          DefaultSettings.volumeNormalizationIOSBaseGain,
+      this.volumeNormalizationMode = DefaultSettings.volumeNormalizationMode,
+      this.contentViewType = DefaultSettings.contentViewType,
+      this.playbackSpeedVisibility = DefaultSettings.playbackSpeedVisibility,
+      this.contentGridViewCrossAxisCountPortrait =
+          DefaultSettings.contentGridViewCrossAxisCountPortrait,
+      this.contentGridViewCrossAxisCountLandscape =
+          DefaultSettings.contentGridViewCrossAxisCountLandscape,
+      this.showTextOnGridView = DefaultSettings.showTextOnGridView,
+      this.sleepTimerSeconds = DefaultSettings.sleepTimerSeconds,
+      required this.downloadLocationsMap,
+      this.useCoverAsBackground = DefaultSettings.useCoverAsBackground,
+      this.playerScreenCoverMinimumPadding =
+          DefaultSettings.playerScreenCoverMinimumPadding,
+      this.showArtistsTopSongs = DefaultSettings.showArtistsTopSongs,
+      this.bufferDurationSeconds = DefaultSettings.bufferDurationSeconds,
+      required this.tabSortBy,
+      required this.tabSortOrder,
+      this.loopMode = DefaultSettings.loopMode,
+      this.playbackSpeed = DefaultSettings.playbackSpeed,
+      this.tabOrder = DefaultSettings.tabOrder,
+      this.autoloadLastQueueOnStartup =
+          DefaultSettings.autoLoadLastQueueOnStartup,
+      this.hasCompletedBlurhashImageMigration =
+          true, //!!! don't touch this default value, it's supposed to be hard coded to run the migration only once
+      this.hasCompletedBlurhashImageMigrationIdFix =
+          true, //!!! don't touch this default value, it's supposed to be hard coded to run the migration only once
+      this.hasCompletedDownloadsServiceMigration =
+          true, //!!! don't touch this default value, it's supposed to be hard coded to run the migration only once
+      this.requireWifiForDownloads = DefaultSettings.requireWifiForDownloads,
+      this.onlyShowFullyDownloaded = DefaultSettings.onlyShowFullyDownloaded,
+      this.showDownloadsWithUnknownLibrary =
+          DefaultSettings.showDownloadsWithUnknownLibrary,
+      this.maxConcurrentDownloads = DefaultSettings.maxConcurrentDownloads,
+      this.downloadWorkers = DefaultSettings.downloadWorkers,
+      this.resyncOnStartup = DefaultSettings.resyncOnStartup,
+      this.preferQuickSyncs = DefaultSettings.preferQuickSyncs,
+      this.hasCompletedIsarUserMigration =
+          true, //!!! don't touch this default value, it's supposed to be hard coded to run the migration only once
+      this.downloadTranscodingCodec,
+      this.downloadTranscodeBitrate,
+      this.shouldTranscodeDownloads = DefaultSettings.shouldTranscodeDownloads,
+      this.shouldRedownloadTranscodes =
+          DefaultSettings.shouldRedownloadTranscodes,
+      this.swipeInsertQueueNext = DefaultSettings.swipeInsertQueueNext,
+      this.useFixedSizeGridTiles = DefaultSettings.useFixedSizeGridTiles,
+      this.fixedGridTileSize = DefaultSettings.fixedGridTileSize,
+      this.allowSplitScreen = DefaultSettings.allowSplitScreen,
+      this.splitScreenPlayerWidth = DefaultSettings.splitScreenPlayerWidth,
+      this.enableVibration = DefaultSettings.enableVibration,
+      this.prioritizeCoverFactor = DefaultSettings.prioritizeCoverFactor,
+      this.suppressPlayerPadding = DefaultSettings.suppressPlayerPadding,
+      this.hidePlayerBottomActions = DefaultSettings.hidePlayerBottomActions,
+      this.reportQueueToServer = DefaultSettings.reportQueueToServer,
+      this.periodicPlaybackSessionUpdateFrequencySeconds =
+          DefaultSettings.periodicPlaybackSessionUpdateFrequencySeconds,
+      this.showArtistChipImage = DefaultSettings.showArtistChipImage,
+      this.trackOfflineFavorites = DefaultSettings.trackOfflineFavorites,
+      this.showProgressOnNowPlayingBar =
+          DefaultSettings.showProgressOnNowPlayingBar,
+      this.startInstantMixForIndividualTracks =
+          DefaultSettings.startInstantMixForIndividualTracks,
+      this.showLyricsTimestamps = DefaultSettings.showLyricsTimestamps,
+      this.lyricsAlignment = DefaultSettings.lyricsAlignment,
+      this.lyricsFontSize = DefaultSettings.lyricsFontSize,
+      this.showLyricsScreenAlbumPrelude =
+          DefaultSettings.showLyricsScreenAlbumPrelude,
+      this.showStopButtonOnMediaNotification =
+          DefaultSettings.showStopButtonOnMediaNotification,
+      this.showSeekControlsOnMediaNotification =
+          DefaultSettings.showSeekControlsOnMediaNotification,
+      this.keepScreenOnOption = DefaultSettings.keepScreenOnOption,
+      this.keepScreenOnWhilePluggedIn =
+          DefaultSettings.keepScreenOnWhilePluggedIn,
+      this.featureChipsConfiguration =
+          DefaultSettings.featureChipsConfiguration,
+      this.showCoversOnAlbumScreen = DefaultSettings.showCoversOnAlbumScreen,
+      this.hasDownloadedPlaylistInfo =
+          DefaultSettings.hasDownloadedPlaylistInfo,
+      this.transcodingSegmentContainer =
+          DefaultSettings.transcodingSegmentContainer});
 
-  @HiveField(0, defaultValue: _isOfflineDefault)
+  @HiveField(0, defaultValue: DefaultSettings.isOffline)
   bool isOffline;
-  @HiveField(1, defaultValue: _shouldTranscodeDefault)
+  @HiveField(1, defaultValue: DefaultSettings.shouldTranscode)
   bool shouldTranscode;
-  @HiveField(2, defaultValue: _transcodeBitrateDefault)
+  @HiveField(2, defaultValue: DefaultSettings.transcodeBitrate)
   int transcodeBitrate;
 
   @Deprecated("Use downloadedLocationsMap instead")
   @HiveField(3)
   List<DownloadLocation> downloadLocations;
 
-  @HiveField(4, defaultValue: _androidStopForegroundOnPauseDefault)
+  @HiveField(4,
+      defaultValue: DefaultSettings.androidStopForegroundOnPause)
   bool androidStopForegroundOnPause;
   @HiveField(5)
   Map<TabContentType, bool> showTabs;
 
   /// Used to remember if the user has set their music screen to favourites
   /// mode.
-  @HiveField(6, defaultValue: _isFavouriteDefault)
-  bool onlyShowFavourite;
+  @HiveField(6, defaultValue: DefaultSettings.onlyShowFavourites)
+  bool onlyShowFavourites;
 
   /// Current sort by setting.
   @Deprecated("Use per-tab sort by instead")
@@ -178,48 +275,46 @@ class FinampSettings {
   SortOrder sortOrder;
 
   /// Amount of songs to get when shuffling songs.
-  @HiveField(9, defaultValue: _songShuffleItemCountDefault)
+  @HiveField(9, defaultValue: DefaultSettings.songShuffleItemCount)
   int songShuffleItemCount;
 
   /// The content view type used by the music screen.
-  @HiveField(10, defaultValue: _contentViewType)
+  @HiveField(10, defaultValue: DefaultSettings.contentViewType)
   ContentViewType contentViewType;
 
   /// Amount of grid tiles to use per-row when portrait.
-  @HiveField(11, defaultValue: _contentGridViewCrossAxisCountPortrait)
+  @HiveField(11,
+      defaultValue: DefaultSettings.contentGridViewCrossAxisCountPortrait)
   int contentGridViewCrossAxisCountPortrait;
 
   /// Amount of grid tiles to use per-row when landscape.
-  @HiveField(12, defaultValue: _contentGridViewCrossAxisCountLandscape)
+  @HiveField(12,
+      defaultValue: DefaultSettings.contentGridViewCrossAxisCountLandscape)
   int contentGridViewCrossAxisCountLandscape;
 
   /// Whether or not to show the text (title, artist etc) on the grid music
   /// screen.
-  @HiveField(13, defaultValue: _showTextOnGridView)
-  bool showTextOnGridView = _showTextOnGridView;
+  @HiveField(13, defaultValue: DefaultSettings.showTextOnGridView)
+  bool showTextOnGridView = DefaultSettings.showTextOnGridView;
 
   /// The number of seconds to wait in a sleep timer. This is so that the app
   /// can remember the last duration. I'd use a Duration type here but Hive
   /// doesn't come with an adapter for it by default.
-  @HiveField(14, defaultValue: _sleepTimerSeconds)
+  @HiveField(14, defaultValue: DefaultSettings.sleepTimerSeconds)
   int sleepTimerSeconds;
 
   @HiveField(15, defaultValue: {})
   Map<String, DownloadLocation> downloadLocationsMap;
 
   /// Whether or not to use blurred cover art as background on player screen.
-  @HiveField(16, defaultValue: _showCoverAsPlayerBackground)
-  bool showCoverAsPlayerBackground = _showCoverAsPlayerBackground;
+  @HiveField(16, defaultValue: DefaultSettings.useCoverAsBackground)
+  bool useCoverAsBackground = DefaultSettings.useCoverAsBackground;
 
-  @HiveField(17, defaultValue: _hideSongArtistsIfSameAsAlbumArtists)
-  bool hideSongArtistsIfSameAsAlbumArtists =
-      _hideSongArtistsIfSameAsAlbumArtists;
-
-  @HiveField(18, defaultValue: _bufferDurationSeconds)
+  @HiveField(18, defaultValue: DefaultSettings.bufferDurationSeconds)
   int bufferDurationSeconds;
 
-  @HiveField(19, defaultValue: _disableGesture)
-  bool disableGesture = _disableGesture;
+  @HiveField(19, defaultValue: DefaultSettings.disableGesture)
+  bool disableGesture = DefaultSettings.disableGesture;
 
   @HiveField(20, defaultValue: {})
   Map<TabContentType, SortBy> tabSortBy;
@@ -227,87 +322,189 @@ class FinampSettings {
   @HiveField(21, defaultValue: {})
   Map<TabContentType, SortOrder> tabSortOrder;
 
-  @HiveField(22, defaultValue: _tabOrder)
+  @HiveField(22, defaultValue: DefaultSettings.tabOrder)
   List<TabContentType> tabOrder;
 
-  @HiveField(23, defaultValue: false)
+  @HiveField(23,
+      defaultValue:
+          true) //!!! don't touch this default value, it's supposed to be hard coded to run the migration only once
   bool hasCompletedBlurhashImageMigration;
 
-  @HiveField(24, defaultValue: false)
+  @HiveField(24,
+      defaultValue:
+          true) //!!! don't touch this default value, it's supposed to be hard coded to run the migration only once
   bool hasCompletedBlurhashImageMigrationIdFix;
 
-  @HiveField(25, defaultValue: _showFastScroller)
-  bool showFastScroller = _showFastScroller;
+  @HiveField(25, defaultValue: DefaultSettings.showFastScroller)
+  bool showFastScroller = DefaultSettings.showFastScroller;
 
-  @HiveField(26, defaultValue: _swipeInsertQueueNext)
+  @HiveField(26, defaultValue: DefaultSettings.swipeInsertQueueNext)
   bool swipeInsertQueueNext;
 
-  @HiveField(27, defaultValue: _defaultLoopMode)
+  @HiveField(27, defaultValue: DefaultSettings.loopMode)
   FinampLoopMode loopMode;
 
-  @HiveField(28, defaultValue: _autoLoadLastQueueOnStartup)
+  @HiveField(28, defaultValue: DefaultSettings.autoLoadLastQueueOnStartup)
   bool autoloadLastQueueOnStartup;
 
-  @HiveField(29, defaultValue: _replayGainActiveDefault)
-  bool replayGainActive;
+  @HiveField(29, defaultValue: DefaultSettings.volumeNormalizationActive)
+  bool volumeNormalizationActive;
 
-  @HiveField(30, defaultValue: _replayGainIOSBaseGainDefault)
-  double replayGainIOSBaseGain;
+  @HiveField(30, defaultValue: DefaultSettings.volumeNormalizationIOSBaseGain)
+  double volumeNormalizationIOSBaseGain;
 
-  @HiveField(31, defaultValue: _replayGainTargetLufsDefault)
-  double replayGainTargetLufs;
+  @HiveField(33, defaultValue: DefaultSettings.volumeNormalizationMode)
+  VolumeNormalizationMode volumeNormalizationMode;
 
-  @HiveField(32, defaultValue: _replayGainNormalizationFactorDefault)
-  double replayGainNormalizationFactor;
+  @HiveField(34,
+      defaultValue:
+          true) //!!! don't touch this default value, it's supposed to be hard coded to run the migration only once
+  bool hasCompletedDownloadsServiceMigration;
 
-  @HiveField(33, defaultValue: _replayGainModeDefault)
-  ReplayGainMode replayGainMode;
-
-  @HiveField(34, defaultValue: false)
-  bool hasCompleteddownloadsServiceMigration;
-
-  @HiveField(35, defaultValue: false)
+  @HiveField(35, defaultValue: DefaultSettings.requireWifiForDownloads)
   bool requireWifiForDownloads;
 
-  @HiveField(36, defaultValue: false)
+  @HiveField(36, defaultValue: DefaultSettings.onlyShowFullyDownloaded)
   bool onlyShowFullyDownloaded;
 
-  @HiveField(37, defaultValue: true)
+  @HiveField(37, defaultValue: DefaultSettings.showDownloadsWithUnknownLibrary)
   bool showDownloadsWithUnknownLibrary;
 
-  @HiveField(38, defaultValue: 10)
+  @HiveField(38, defaultValue: DefaultSettings.maxConcurrentDownloads)
   int maxConcurrentDownloads;
 
-  @HiveField(39, defaultValue: 5)
+  @HiveField(39, defaultValue: DefaultSettings.downloadWorkers)
   int downloadWorkers;
 
-  @HiveField(40, defaultValue: _defaultResyncOnStartup)
+  @HiveField(40, defaultValue: DefaultSettings.resyncOnStartup)
   bool resyncOnStartup;
 
-  @HiveField(41, defaultValue: true)
+  @HiveField(41, defaultValue: DefaultSettings.preferQuickSyncs)
   bool preferQuickSyncs;
 
-  @HiveField(42, defaultValue: false)
+  @HiveField(42, defaultValue: true)
   bool hasCompletedIsarUserMigration;
-
-  @HiveField(43)
   FinampTranscodingCodec? downloadTranscodingCodec;
 
-  @HiveField(44, defaultValue: _shouldTranscodeDownloadsDefault)
+  @HiveField(44, defaultValue: DefaultSettings.shouldTranscodeDownloads)
   TranscodeDownloadsSetting shouldTranscodeDownloads;
 
   @HiveField(45)
   int? downloadTranscodeBitrate;
 
-  @HiveField(46, defaultValue: _shouldRedownloadTranscodesDefault)
+  @HiveField(46, defaultValue: DefaultSettings.shouldRedownloadTranscodes)
   bool shouldRedownloadTranscodes;
+
+  @HiveField(47, defaultValue: DefaultSettings.enableVibration)
+  bool enableVibration;
+
+  @HiveField(48, defaultValue: DefaultSettings.playerScreenCoverMinimumPadding)
+  double playerScreenCoverMinimumPadding =
+      DefaultSettings.playerScreenCoverMinimumPadding;
+
+  @HiveField(49, defaultValue: DefaultSettings.prioritizeCoverFactor)
+  double prioritizeCoverFactor;
+
+  @HiveField(50, defaultValue: DefaultSettings.suppressPlayerPadding)
+  bool suppressPlayerPadding;
+
+  @HiveField(51, defaultValue: DefaultSettings.hidePlayerBottomActions)
+  bool hidePlayerBottomActions;
+
+  @HiveField(52, defaultValue: DefaultSettings.reportQueueToServer)
+  bool reportQueueToServer;
+
+  @HiveField(53,
+      defaultValue:
+          DefaultSettings.periodicPlaybackSessionUpdateFrequencySeconds)
+  @HiveField(53,
+      defaultValue:
+          DefaultSettings.periodicPlaybackSessionUpdateFrequencySeconds)
+  int periodicPlaybackSessionUpdateFrequencySeconds;
+
+  @HiveField(54, defaultValue: DefaultSettings.showArtistsTopSongs)
+  bool showArtistsTopSongs = DefaultSettings.showArtistsTopSongs;
+
+  @HiveField(55, defaultValue: DefaultSettings.showArtistChipImage)
+  bool showArtistChipImage;
+
+  @HiveField(56, defaultValue: DefaultSettings.playbackSpeed)
+  double playbackSpeed;
+
+  /// The content playback speed type defining how and whether to display the playback speed controls in the song menu
+  @HiveField(57, defaultValue: DefaultSettings.playbackSpeedVisibility)
+  PlaybackSpeedVisibility playbackSpeedVisibility;
+
+  @HiveField(58, defaultValue: null)
+  String? defaultDownloadLocation;
+
+  @HiveField(59, defaultValue: DefaultSettings.useFixedSizeGridTiles)
+  bool useFixedSizeGridTiles;
+
+  @HiveField(60, defaultValue: DefaultSettings.fixedGridTileSize)
+  int fixedGridTileSize;
+
+  @HiveField(61, defaultValue: DefaultSettings.allowSplitScreen)
+  bool allowSplitScreen;
+
+  @HiveField(62, defaultValue: DefaultSettings.splitScreenPlayerWidth)
+  double splitScreenPlayerWidth;
+
+  @HiveField(63, defaultValue: DefaultSettings.trackOfflineFavorites)
+  bool trackOfflineFavorites;
+
+  @HiveField(64, defaultValue: DefaultSettings.showProgressOnNowPlayingBar)
+  bool showProgressOnNowPlayingBar;
+
+  @HiveField(65,
+      defaultValue: DefaultSettings.startInstantMixForIndividualTracks)
+  bool startInstantMixForIndividualTracks;
+
+  @HiveField(66, defaultValue: DefaultSettings.showLyricsTimestamps)
+  bool showLyricsTimestamps;
+
+  @HiveField(67, defaultValue: DefaultSettings.lyricsAlignment)
+  LyricsAlignment lyricsAlignment;
+
+  @HiveField(68,
+      defaultValue: DefaultSettings.showStopButtonOnMediaNotification)
+  bool showStopButtonOnMediaNotification;
+
+  @HiveField(69,
+      defaultValue: DefaultSettings.showSeekControlsOnMediaNotification)
+  bool showSeekControlsOnMediaNotification;
+
+  @HiveField(70, defaultValue: DefaultSettings.lyricsFontSize)
+  LyricsFontSize lyricsFontSize;
+
+  @HiveField(71, defaultValue: DefaultSettings.showLyricsScreenAlbumPrelude)
+  bool showLyricsScreenAlbumPrelude;
+
+  @HiveField(72, defaultValue: DefaultSettings.keepScreenOnOption)
+  KeepScreenOnOption keepScreenOnOption;
+
+  @HiveField(73, defaultValue: DefaultSettings.keepScreenOnWhilePluggedIn)
+  bool keepScreenOnWhilePluggedIn;
+
+  @HiveField(74, defaultValue: DefaultSettings.hasDownloadedPlaylistInfo)
+  bool hasDownloadedPlaylistInfo;
+
+  @HiveField(75, defaultValue: DefaultSettings.transcodingSegmentContainer)
+  FinampSegmentContainer transcodingSegmentContainer;
+
+  @HiveField(76, defaultValue: DefaultSettings.featureChipsConfiguration)
+  FinampFeatureChipsConfiguration featureChipsConfiguration;
+
+  @HiveField(77, defaultValue: DefaultSettings.showCoversOnAlbumScreen)
+  bool showCoversOnAlbumScreen;
 
   static Future<FinampSettings> create() async {
     final downloadLocation = await DownloadLocation.create(
       name: "Internal Storage",
-      // TODO update backup exclusions on iOS and make sure support dir is covered
       // default download location moved to support dir based on existing comment
-      baseDirectory: DownloadLocationType.internalSupport,
+      baseDirectory: (Platform.isIOS || Platform.isAndroid)
+          ? DownloadLocationType.internalSupport
+          : DownloadLocationType.cache,
     );
     return FinampSettings(
       downloadLocations: [],
@@ -320,6 +517,7 @@ class FinampSettings {
       downloadLocationsMap: {downloadLocation.id: downloadLocation},
       tabSortBy: {},
       tabSortOrder: {},
+      useFixedSizeGridTiles: !(Platform.isIOS || Platform.isAndroid),
     );
   }
 
@@ -331,7 +529,10 @@ class FinampSettings {
   /// technically throw a StateError, but that should never happen™.
   DownloadLocation get internalSongDir =>
       downloadLocationsMap.values.firstWhere((element) =>
-          element.baseDirectory == DownloadLocationType.internalSupport);
+          element.baseDirectory ==
+          ((Platform.isIOS || Platform.isAndroid)
+              ? DownloadLocationType.internalSupport
+              : DownloadLocationType.cache));
 
   Duration get bufferDuration => Duration(seconds: bufferDurationSeconds);
 
@@ -345,6 +546,11 @@ class FinampSettings {
   SortOrder getSortOrder(TabContentType tabType) {
     return tabSortOrder[tabType] ?? SortOrder.ascending;
   }
+}
+
+enum CustomPlaybackActions {
+  shuffle,
+  toggleFavorite;
 }
 
 /// Custom storage locations for storing music/images.
@@ -378,7 +584,6 @@ class DownloadLocation {
   bool? legacyUseHumanReadableNames;
 
   bool get useHumanReadableNames => baseDirectory.useHumanReadableNames;
-  bool get needsPermission => baseDirectory.needsPermission;
 
   /// If true, the user can delete this storage location. It's a bit of a hack,
   /// but the only undeletable location is the internal storage dir, so we can
@@ -428,7 +633,10 @@ class DownloadLocation {
         _currentPath = relativePath!;
       case DownloadLocationType.custom:
         _currentPath = relativePath!;
-      case _:
+      case DownloadLocationType.cache:
+        _currentPath = (await getApplicationCacheDirectory()).path;
+      case DownloadLocationType.none:
+      case DownloadLocationType.migrated:
         throw StateError("Bad basedirectory");
     }
   }
@@ -521,6 +729,23 @@ enum TabContentType {
         return AppLocalizations.of(context)!.genres;
       case TabContentType.playlists:
         return AppLocalizations.of(context)!.playlists;
+    }
+  }
+
+  static TabContentType fromItemType(String itemType) {
+    switch (itemType) {
+      case "Audio":
+        return TabContentType.songs;
+      case "MusicAlbum":
+        return TabContentType.albums;
+      case "MusicArtist":
+        return TabContentType.artists;
+      case "MusicGenre":
+        return TabContentType.genres;
+      case "Playlist":
+        return TabContentType.playlists;
+      default:
+        throw const FormatException("Unsupported itemType");
     }
   }
 }
@@ -725,24 +950,21 @@ class DownloadStub {
       case DownloadItemType.collection:
         return baseItem != null &&
             BaseItemDtoType.fromItem(baseItem!) == baseItemType &&
-            baseItemType != BaseItemDtoType.song &&
-            baseItemType != BaseItemDtoType.unknown;
+            baseItemType.downloadType == DownloadItemType.collection &&
+            baseItemType != BaseItemDtoType.noItem;
       case DownloadItemType.song:
-        return baseItemType == BaseItemDtoType.song &&
+        return baseItemType.downloadType == DownloadItemType.song &&
             baseItem != null &&
             BaseItemDtoType.fromItem(baseItem!) == baseItemType;
       case DownloadItemType.image:
         return baseItem != null;
       case DownloadItemType.finampCollection:
-        // TODO create an enum or somthing for this if more custom collections happen
         return baseItem == null &&
-            baseItemType == BaseItemDtoType.unknown &&
-            (id == "Favorites" ||
-                id == "All Playlists" ||
-                id == "5 Latest Albums");
+            baseItemType == BaseItemDtoType.noItem &&
+            finampCollection != null;
       case DownloadItemType.anchor:
         return baseItem == null &&
-            baseItemType == BaseItemDtoType.unknown &&
+            baseItemType == BaseItemDtoType.noItem &&
             id == "Anchor";
     }
   }
@@ -779,7 +1001,25 @@ class DownloadStub {
         jsonItem: null,
         type: type,
         name: name ?? "Unlocalized $id",
-        baseItemType: BaseItemDtoType.unknown);
+        baseItemType: BaseItemDtoType.noItem);
+  }
+
+  factory DownloadStub.fromFinampCollection(FinampCollection collection) {
+    String id = collection.id;
+    // Fetch localized name from default global context.
+    String? name;
+    var context = GlobalSnackbar.materialAppScaffoldKey.currentContext;
+    if (context != null) {
+      name = collection.getName(context);
+    }
+
+    return DownloadStub._build(
+        id: id,
+        isarId: getHash(id, DownloadItemType.finampCollection),
+        jsonItem: jsonEncode(collection.toJson()),
+        type: DownloadItemType.finampCollection,
+        name: name ?? "Unlocalized Finamp Collection $id",
+        baseItemType: BaseItemDtoType.noItem);
   }
 
   /// The integer iD used as a database key by Isar
@@ -803,10 +1043,34 @@ class DownloadStub {
   final String? jsonItem;
 
   @ignore
-  BaseItemDto? get baseItem => _baseItemCached ??=
-      ((jsonItem == null) ? null : BaseItemDto.fromJson(jsonDecode(jsonItem!)));
+  BaseItemDto? get baseItem =>
+      _baseItemCached ??= ((jsonItem == null || !type.requiresItem)
+          ? null
+          : BaseItemDto.fromJson(jsonDecode(jsonItem!)));
+
   @ignore
   BaseItemDto? _baseItemCached;
+
+  @ignore
+  FinampCollection? get finampCollection =>
+      _finampCollectionCached ??= (type != DownloadItemType.finampCollection
+          ? null
+          : jsonItem == null
+              // Switch on ID to allow legacy collections to continue syncing
+              ? switch (id) {
+                  "Favorites" =>
+                    FinampCollection(type: FinampCollectionType.favorites),
+                  "All Playlists" =>
+                    FinampCollection(type: FinampCollectionType.allPlaylists),
+                  "5 Latest Albums" =>
+                    FinampCollection(type: FinampCollectionType.latest5Albums),
+                  _ =>
+                    throw "Invalid FinampCollection DownloadItem: no attached collection"
+                }
+              : FinampCollection.fromJson(jsonDecode(jsonItem!)));
+
+  @ignore
+  FinampCollection? _finampCollectionCached;
 
   /// FNV-1a 64bit hash algorithm optimized for Dart Strings
   /// Provided by Isar documentation
@@ -955,7 +1219,8 @@ class DownloadItem extends DownloadStub {
   DownloadItem? copyWith(
       {BaseItemDto? item,
       List<DownloadStub>? orderedChildItems,
-      String? viewId}) {
+      String? viewId,
+      required bool forceCopy}) {
     String? json;
     if (type == DownloadItemType.image) {
       // Images do not have any attributes we might want to update
@@ -968,20 +1233,23 @@ class DownloadItem extends DownloadStub {
       if (item.id != id) {
         throw "Could not update $name - incompatible new item $item";
       }
-      // Not all BaseItemDto are requested with mediasources or childcount.  Do not
+      // Not all BaseItemDto are requested with mediaSources, mediaStreams or childCount.  Do not
       // overwrite with null if the new item does not have them.
       item.mediaSources ??= baseItem?.mediaSources;
-      item.childCount ??= baseItem?.childCount;
+      item.mediaStreams ??= baseItem?.mediaStreams;
+      item.sortName ??= baseItem?.sortName;
     }
     assert(item == null ||
-        item.mediaSources == null ||
-        item.mediaSources!.isNotEmpty);
+        ((item.mediaSources == null || item.mediaSources!.isNotEmpty) &&
+            (item.mediaStreams == null || item.mediaStreams!.isNotEmpty)));
     var orderedChildren = orderedChildItems?.map((e) => e.isarId).toList();
-    if (viewId == null || viewId == this.viewId) {
-      if (item == null || baseItem!.mostlyEqual(item)) {
-        var equal = const DeepCollectionEquality().equals;
-        if (equal(orderedChildren, this.orderedChildren)) {
-          return null;
+    if (!forceCopy) {
+      if (viewId == null || viewId == this.viewId) {
+        if (item == null || baseItem!.mostlyEqual(item)) {
+          var equal = const DeepCollectionEquality().equals;
+          if (equal(orderedChildren, this.orderedChildren)) {
+            return null;
+          }
         }
       }
     }
@@ -1087,39 +1355,68 @@ enum DownloadItemState {
 /// The status of a download, as used to determine download button state.
 /// Obtain via downloadsService statusProvider.
 enum DownloadItemStatus {
-  notNeeded(false, false),
-  incidental(false, false),
-  incidentalOutdated(false, true),
-  required(true, false),
-  requiredOutdated(true, true);
+  notNeeded(false, false, false),
+  incidental(false, false, true),
+  incidentalOutdated(false, true, true),
+  required(true, false, false),
+  requiredOutdated(true, true, false);
 
-  const DownloadItemStatus(this.isRequired, this.outdated);
+  const DownloadItemStatus(this.isRequired, this.outdated, this.isIncidental);
 
   final bool isRequired;
   final bool outdated;
+  final bool isIncidental;
 }
 
 /// The type of a BaseItemDto as determined from its type field.
 /// Enumerated by Isar, do not modify order or delete existing entries
 enum BaseItemDtoType {
-  unknown(null, false),
-  album("MusicAlbum", false),
-  artist("MusicArtist", true),
-  playlist("Playlist", true),
-  genre("MusicGenre", true),
-  song("Audio", false),
-  library("CollectionFolder", true),
-  folder("Folder", false),
-  musicVideo("MusicVideo", false);
+  noItem(null, true, null, null),
+  album("MusicAlbum", false, [song], DownloadItemType.collection),
+  artist("MusicArtist", true, [album, song], DownloadItemType.collection),
+  playlist("Playlist", true, [song], DownloadItemType.collection),
+  genre("MusicGenre", true, [album, song], DownloadItemType.collection),
+  song("Audio", false, [], DownloadItemType.song),
+  library("CollectionFolder", true, [album, song], DownloadItemType.collection),
+  folder("Folder", true, null, DownloadItemType.collection),
+  musicVideo("MusicVideo", false, [], DownloadItemType.song),
+  audioBook("AudioBook", false, [], DownloadItemType.song),
+  tvEpisode("Episode", false, [], DownloadItemType.song),
+  video("Video", false, [], DownloadItemType.song),
+  movie("Movie", false, [], DownloadItemType.song),
+  trailer("Trailer", false, [], DownloadItemType.song),
+  unknown(null, true, null, DownloadItemType.collection);
 
-  const BaseItemDtoType(this.idString, this.expectChanges);
+  // All possible types in Jellyfin as of 10.9:
+  //"AggregateFolder" "Audio" "AudioBook" "BasePluginFolder" "Book" "BoxSet"
+  // "Channel" "ChannelFolderItem" "CollectionFolder" "Episode" "Folder" "Genre"
+  // "ManualPlaylistsFolder" "Movie" "LiveTvChannel" "LiveTvProgram" "MusicAlbum"
+  // "MusicArtist" "MusicGenre" "MusicVideo" "Person" "Photo" "PhotoAlbum" "Playlist"
+  // "PlaylistsFolder" "Program" "Recording" "Season" "Series" "Studio" "Trailer" "TvChannel"
+  // "TvProgram" "UserRootFolder" "UserView" "Video" "Year"
+
+  const BaseItemDtoType(
+      this.idString, this.expectChanges, this.childTypes, this.downloadType);
 
   final String? idString;
   final bool expectChanges;
+  final List<BaseItemDtoType>? childTypes;
+  final DownloadItemType? downloadType;
 
+  bool get expectChangesInChildren =>
+      childTypes?.any((x) => x.expectChanges) ?? true;
+
+  // BaseItemDto types that we handle like songs have been handled by returning
+  // the actual song type.  This may be a bad ides?
   static BaseItemDtoType fromItem(BaseItemDto item) {
     switch (item.type) {
       case "Audio":
+      case "AudioBook":
+      case "MusicVideo":
+      case "Episode":
+      case "Video":
+      case "Movie":
+      case "Trailer":
         return song;
       case "MusicAlbum":
         return album;
@@ -1132,11 +1429,9 @@ enum BaseItemDtoType {
       case "CollectionFolder":
         return library;
       case "Folder":
-        return song;
-      case "MusicVideo":
-        return song;
+        return folder;
       default:
-        throw "Unknown baseItemDto type ${item.type}";
+        return unknown;
     }
   }
 }
@@ -1151,6 +1446,7 @@ class OfflineListen {
     this.artist,
     this.album,
     this.trackMbid,
+    this.deviceInfo,
   });
 
   /// The stop timestamp of the listen, measured in seconds since the epoch.
@@ -1175,6 +1471,9 @@ class OfflineListen {
   // The MusicBrainz ID of the track, if available.
   @HiveField(6)
   String? trackMbid;
+
+  @HiveField(7)
+  DeviceInfo? deviceInfo;
 }
 
 @HiveType(typeId: 50)
@@ -1232,7 +1531,11 @@ enum QueueItemSourceType {
   @HiveField(16)
   queue,
   @HiveField(17)
-  unknown;
+  unknown,
+  @HiveField(18)
+  genreMix,
+  @HiveField(19)
+  song;
 }
 
 @HiveType(typeId: 53)
@@ -1254,7 +1557,7 @@ class QueueItemSource {
     required this.name,
     required this.id,
     this.item,
-    this.contextLufs,
+    this.contextNormalizationGain,
   });
 
   @HiveField(0)
@@ -1270,7 +1573,7 @@ class QueueItemSource {
   BaseItemDto? item;
 
   @HiveField(4)
-  double? contextLufs;
+  double? contextNormalizationGain;
 }
 
 @HiveType(typeId: 55)
@@ -1370,7 +1673,9 @@ class FinampQueueOrder {
     required this.originalSource,
     required this.linearOrder,
     required this.shuffledOrder,
-  });
+  }) {
+    id = const Uuid().v4();
+  }
 
   @HiveField(0)
   List<FinampQueueItem> items;
@@ -1387,11 +1692,15 @@ class FinampQueueOrder {
   /// The integers at index x contains the index of the item within [items] at queue position x.
   @HiveField(3)
   List<int> shuffledOrder;
+
+  @HiveField(4)
+  late String id;
 }
 
 @HiveType(typeId: 59)
 class FinampQueueInfo {
   FinampQueueInfo({
+    required this.id,
     required this.previousTracks,
     required this.currentTrack,
     required this.nextUp,
@@ -1417,6 +1726,36 @@ class FinampQueueInfo {
 
   @HiveField(5)
   SavedQueueState saveState;
+
+  @HiveField(6)
+  String id;
+
+  int get currentTrackIndex =>
+      previousTracks.length + (currentTrack == null ? 0 : 1);
+  int get remainingTrackCount => nextUp.length + queue.length;
+  int get trackCount => currentTrackIndex + remainingTrackCount;
+
+  /// Remaining duration of queue.  Does not consider position in current track.
+  Duration get remainingDuration {
+    var remaining = 0;
+    for (var item in CombinedIterableView([nextUp, queue])) {
+      remaining += item.item.duration?.inMicroseconds ?? 0;
+    }
+    return Duration(microseconds: remaining);
+  }
+
+  Duration get totalDuration {
+    var total = 0;
+    for (var item in CombinedIterableView([
+      previousTracks,
+      [currentTrack],
+      nextUp,
+      queue
+    ])) {
+      total += item?.item.duration?.inMicroseconds ?? 0;
+    }
+    return Duration(microseconds: total);
+  }
 }
 
 @HiveType(typeId: 60)
@@ -1518,14 +1857,14 @@ enum SavedQueueState {
 @HiveType(typeId: 63)
 
 /// Describes which mode will be used for loudness normalization.
-enum ReplayGainMode {
-  /// Use track LUFS if playing unrelated tracks, use album LUFS if playing albums
+enum VolumeNormalizationMode {
+  /// Use track normalization gain if playing unrelated tracks, use album normalization gain if playing albums
   @HiveField(0)
   hybrid,
 
-  /// Use track LUFS regardless of context
+  /// Use track normalization gain regardless of context
   @HiveField(1)
-  trackOnly,
+  trackBased,
 
   /// Only normalize if playing albums
   @HiveField(2)
@@ -1535,24 +1874,26 @@ enum ReplayGainMode {
 @HiveType(typeId: 64)
 enum DownloadLocationType {
   @HiveField(0)
-  internalDocuments(false, false, false, BaseDirectory.applicationDocuments),
+  internalDocuments(false, false, BaseDirectory.applicationDocuments),
   @HiveField(1)
-  internalSupport(false, false, false, BaseDirectory.applicationSupport),
+  internalSupport(false, false, BaseDirectory.applicationSupport),
   @HiveField(2)
-  external(true, false, false, BaseDirectory.root),
+  external(true, false, BaseDirectory.root),
   @HiveField(3)
-  custom(true, false, true, BaseDirectory.root),
+  custom(true, true, BaseDirectory.root),
   @HiveField(4)
-  none(false, false, false, BaseDirectory.root),
+  none(false, false, BaseDirectory.root),
   @HiveField(5)
-  migrated(true, false, false, BaseDirectory.root);
+  migrated(true, false, BaseDirectory.root),
+  @HiveField(6)
+  cache(false, false, BaseDirectory.root);
 
-  const DownloadLocationType(this.needsPath, this.needsPermission,
-      this.useHumanReadableNames, this.baseDirectory);
+  const DownloadLocationType(
+      this.needsPath, this.useHumanReadableNames, this.baseDirectory);
 
+  /// true if the download location path must be supplied in the constructer,
+  /// false if it is calculated from the baseDirectory
   final bool needsPath;
-  // TODO this isn't used anymore.  Investigate permission stuff.
-  final bool needsPermission;
   final bool useHumanReadableNames;
   final BaseDirectory baseDirectory;
 }
@@ -1560,19 +1901,20 @@ enum DownloadLocationType {
 @HiveType(typeId: 65)
 enum FinampTranscodingCodec {
   @HiveField(0)
-  aac("m4a", true, 1.2),
+  aac("aac", true, 1.2),
   @HiveField(1)
   mp3("mp3", true, 1.0),
   @HiveField(2)
   opus("ogg", false, 2.0),
   @HiveField(3)
-  original("song", true, 99999999);
+  // Container is null to fall back to real original container per song
+  original(null, true, 99999999);
 
   const FinampTranscodingCodec(
       this.container, this.iosCompatible, this.quality);
 
   /// The container to use for the given codec
-  final String container;
+  final String? container;
 
   final bool iosCompatible;
 
@@ -1660,4 +2002,446 @@ enum TranscodeDownloadsSetting {
   never,
   @HiveField(2)
   ask;
+}
+
+/// TODO
+@collection
+class DownloadedLyrics {
+  DownloadedLyrics({
+    required this.jsonItem,
+    required this.isarId,
+  });
+
+  factory DownloadedLyrics.fromItem({
+    required LyricDto item,
+    required int isarId,
+  }) {
+    return DownloadedLyrics(
+      isarId: isarId,
+      jsonItem: jsonEncode(item.toJson()),
+    );
+  }
+
+  /// The integer ID used as a database key by Isar
+  final Id isarId;
+
+  /// The LyricDto as a JSON string for storage in isar.
+  /// Use [lyricDto] to retrieve.
+  final String? jsonItem;
+
+  @ignore
+  LyricDto? get lyricDto => _lyricDtoCached ??=
+      ((jsonItem == null) ? null : LyricDto.fromJson(jsonDecode(jsonItem!)));
+  @ignore
+  LyricDto? _lyricDtoCached;
+}
+
+@HiveType(typeId: 67)
+enum PlaybackSpeedVisibility {
+  @HiveField(0)
+  automatic,
+  @HiveField(1)
+  visible,
+  @HiveField(2)
+  hidden;
+
+  /// Human-readable version of this enum. I've written longer descriptions on
+  /// enums like [TabContentType], and I can't be bothered to copy and paste it
+  /// again.
+  @override
+  @Deprecated("Use toLocalisedString when possible")
+  String toString() => _humanReadableName(this);
+
+  String toLocalisedString(BuildContext context) =>
+      _humanReadableLocalisedName(this, context);
+
+  String _humanReadableName(PlaybackSpeedVisibility playbackSpeedVisibility) {
+    switch (playbackSpeedVisibility) {
+      case PlaybackSpeedVisibility.automatic:
+        return "Automatic";
+      case PlaybackSpeedVisibility.visible:
+        return "On";
+      case PlaybackSpeedVisibility.hidden:
+        return "Off";
+    }
+  }
+
+  String _humanReadableLocalisedName(
+      PlaybackSpeedVisibility playbackSpeedVisibility, BuildContext context) {
+    switch (playbackSpeedVisibility) {
+      case PlaybackSpeedVisibility.automatic:
+        return AppLocalizations.of(context)!.automatic;
+      case PlaybackSpeedVisibility.visible:
+        return AppLocalizations.of(context)!.shown;
+      case PlaybackSpeedVisibility.hidden:
+        return AppLocalizations.of(context)!.hidden;
+    }
+  }
+}
+
+enum FinampCollectionType {
+  favorites,
+  allPlaylists,
+  latest5Albums,
+  libraryImages,
+  allPlaylistsMetadata;
+}
+
+@JsonSerializable(
+  fieldRename: FieldRename.pascal,
+  explicitToJson: true,
+  anyMap: true,
+  includeIfNull: false,
+)
+class FinampCollection {
+  FinampCollection({required this.type, this.library}) {
+    assert(type == FinampCollectionType.libraryImages || library == null);
+    assert(type != FinampCollectionType.libraryImages || library != null);
+  }
+
+  final FinampCollectionType type;
+  final BaseItemDto? library;
+
+  String get id => switch (type) {
+        FinampCollectionType.favorites => "Favorites",
+        FinampCollectionType.allPlaylists => "All Playlists",
+        FinampCollectionType.latest5Albums => "5 Latest Albums",
+        FinampCollectionType.libraryImages =>
+          "Cache Library Images:${library!.id}",
+        FinampCollectionType.allPlaylistsMetadata => "All Playlists Metadata",
+      };
+
+  String getName(BuildContext context) => switch (type) {
+        FinampCollectionType.favorites =>
+          AppLocalizations.of(context)!.finampCollectionNames("favorites"),
+        FinampCollectionType.allPlaylists =>
+          AppLocalizations.of(context)!.finampCollectionNames("allPlaylists"),
+        FinampCollectionType.latest5Albums => AppLocalizations.of(context)!
+            .finampCollectionNames("fiveLatestAlbums"),
+        FinampCollectionType.libraryImages => AppLocalizations.of(context)!
+            .cacheLibraryImagesName(library!.name ?? ""),
+        FinampCollectionType.allPlaylistsMetadata =>
+          AppLocalizations.of(context)!
+              .finampCollectionNames("allPlaylistsMetadata"),
+      };
+
+  factory FinampCollection.fromJson(Map<String, dynamic> json) =>
+      _$FinampCollectionFromJson(json);
+  Map<String, dynamic> toJson() => _$FinampCollectionToJson(this);
+}
+
+@HiveType(typeId: 68)
+enum MediaItemParentType {
+  @HiveField(0)
+  collection,
+  @HiveField(1)
+  rootCollection,
+  @HiveField(2)
+  instantMix,
+}
+
+@JsonSerializable()
+@HiveType(typeId: 69)
+class MediaItemId {
+  MediaItemId({
+    required this.contentType,
+    required this.parentType,
+    this.itemId,
+    this.parentId,
+  });
+
+  @HiveField(0)
+  TabContentType contentType;
+
+  @HiveField(1)
+  MediaItemParentType parentType;
+
+  @HiveField(2)
+  String? itemId;
+
+  @HiveField(3)
+  String? parentId;
+
+  factory MediaItemId.fromJson(Map<String, dynamic> json) =>
+      _$MediaItemIdFromJson(json);
+
+  Map<String, dynamic> toJson() => _$MediaItemIdToJson(this);
+
+  @override
+  String toString() {
+    return jsonEncode(toJson());
+  }
+}
+
+@HiveType(typeId: 70)
+enum LyricsAlignment {
+  @HiveField(0)
+  start,
+  @HiveField(1)
+  center,
+  @HiveField(2)
+  end;
+
+  /// Human-readable version of the [LyricsAlignment]
+  @override
+  @Deprecated("Use toLocalisedString when possible")
+  String toString() => _humanReadableName(this);
+
+  String toLocalisedString(BuildContext context) =>
+      _humanReadableLocalisedName(this, context);
+
+  String _humanReadableName(LyricsAlignment lyricsAlignment) {
+    switch (lyricsAlignment) {
+      case LyricsAlignment.start:
+        return "Start";
+      case LyricsAlignment.center:
+        return "Center";
+      case LyricsAlignment.end:
+        return "End";
+    }
+  }
+
+  String _humanReadableLocalisedName(
+      LyricsAlignment lyricsAlignment, BuildContext context) {
+    switch (lyricsAlignment) {
+      case LyricsAlignment.start:
+        return AppLocalizations.of(context)!.alignmentOptionStart;
+      case LyricsAlignment.center:
+        return AppLocalizations.of(context)!.alignmentOptionCenter;
+      case LyricsAlignment.end:
+        return AppLocalizations.of(context)!.alignmentOptionEnd;
+    }
+  }
+}
+
+@HiveType(typeId: 71)
+enum LyricsFontSize {
+  @HiveField(0)
+  small,
+  @HiveField(1)
+  medium,
+  @HiveField(2)
+  large;
+
+  /// Human-readable version of the [LyricsFontSize]
+  @override
+  @Deprecated("Use toLocalisedString when possible")
+  String toString() => _humanReadableName(this);
+
+  String toLocalisedString(BuildContext context) =>
+      _humanReadableLocalisedName(this, context);
+
+  String _humanReadableName(LyricsFontSize lyricsFontSize) {
+    switch (lyricsFontSize) {
+      case LyricsFontSize.small:
+        return "Small";
+      case LyricsFontSize.medium:
+        return "Medium";
+      case LyricsFontSize.large:
+        return "Large";
+    }
+  }
+
+  String _humanReadableLocalisedName(
+      LyricsFontSize lyricsFontSize, BuildContext context) {
+    switch (lyricsFontSize) {
+      case LyricsFontSize.small:
+        return AppLocalizations.of(context)!.fontSizeOptionSmall;
+      case LyricsFontSize.medium:
+        return AppLocalizations.of(context)!.fontSizeOptionMedium;
+      case LyricsFontSize.large:
+        return AppLocalizations.of(context)!.fontSizeOptionLarge;
+    }
+  }
+}
+
+@HiveType(typeId: 72)
+enum KeepScreenOnOption {
+  @HiveField(0)
+  disabled,
+  @HiveField(1)
+  alwaysOn,
+  @HiveField(2)
+  whilePlaying,
+  @HiveField(3)
+  whileLyrics;
+
+  /// Human-readable version of this enum. I've written longer descriptions on
+  /// enums like [TabContentType], and I can't be bothered to copy and paste it
+  /// again.
+  @override
+  @Deprecated("Use toLocalisedString when possible")
+  String toString() => _humanReadableName(this);
+
+  String toLocalisedString(BuildContext context) =>
+      _humanReadableLocalisedName(this, context);
+
+  String _humanReadableName(KeepScreenOnOption keepScreenOnOption) {
+    switch (keepScreenOnOption) {
+      case KeepScreenOnOption.disabled:
+        return "Disabled";
+      case KeepScreenOnOption.alwaysOn:
+        return "Always On";
+      case KeepScreenOnOption.whilePlaying:
+        return "While Playing Music";
+      case KeepScreenOnOption.whileLyrics:
+        return "While Showing Lyrics";
+    }
+  }
+
+  String _humanReadableLocalisedName(
+      KeepScreenOnOption keepScreenOnOption, BuildContext context) {
+    switch (keepScreenOnOption) {
+      case KeepScreenOnOption.disabled:
+        return AppLocalizations.of(context)!.keepScreenOnDisabled;
+      case KeepScreenOnOption.alwaysOn:
+        return AppLocalizations.of(context)!.keepScreenOnAlwaysOn;
+      case KeepScreenOnOption.whilePlaying:
+        return AppLocalizations.of(context)!.keepScreenOnWhilePlaying;
+      case KeepScreenOnOption.whileLyrics:
+        return AppLocalizations.of(context)!.keepScreenOnWhileLyrics;
+    }
+  }
+}
+
+@HiveType(typeId: 73)
+enum FinampSegmentContainer {
+  @HiveField(0)
+  mpegTS("ts"),
+  @HiveField(1)
+  fragmentedMp4("mp4");
+
+  const FinampSegmentContainer(this.container);
+
+  /// The container to use to transport the segments
+  final String container;
+}
+
+@HiveType(typeId: 74)
+enum FinampFeatureChipType {
+  @HiveField(0)
+  playCount,
+  @HiveField(1)
+  additionalPeople,
+  @HiveField(2)
+  playbackMode,
+  @HiveField(3)
+  codec,
+  @HiveField(4)
+  bitRate,
+  @HiveField(5)
+  bitDepth,
+  @HiveField(6)
+  size,
+  @HiveField(7)
+  normalizationGain,
+  @HiveField(8)
+  sampleRate;
+
+  /// Human-readable version of the [FinampFeatureChipType]
+  @override
+  @Deprecated("Use toLocalisedString when possible")
+  String toString() => _humanReadableName(this);
+
+  String toLocalisedString(BuildContext context) =>
+      _humanReadableLocalisedName(this, context);
+
+  String _humanReadableName(FinampFeatureChipType featureChipType) {
+    switch (featureChipType) {
+      case FinampFeatureChipType.playCount:
+        return "Play Count";
+      case FinampFeatureChipType.additionalPeople:
+        return "Additional People";
+      case FinampFeatureChipType.playbackMode:
+        return "Playback Mode";
+      case FinampFeatureChipType.codec:
+        return "codec";
+      case FinampFeatureChipType.bitRate:
+        return "Bit Rate";
+      case FinampFeatureChipType.bitDepth:
+        return "Bit Depth";
+      case FinampFeatureChipType.size:
+        return "size";
+      case FinampFeatureChipType.normalizationGain:
+        return "Normalization Gain";
+      case FinampFeatureChipType.sampleRate:
+        return "Sample Rate";
+    }
+  }
+
+  String _humanReadableLocalisedName(
+      FinampFeatureChipType featureChipType, BuildContext context) {
+    switch (featureChipType) {
+      case FinampFeatureChipType.playCount:
+        return AppLocalizations.of(context)!.playCount;
+      case FinampFeatureChipType.additionalPeople:
+        return AppLocalizations.of(context)!.additionalPeople;
+      case FinampFeatureChipType.playbackMode:
+        return AppLocalizations.of(context)!.playbackMode;
+      case FinampFeatureChipType.codec:
+        return AppLocalizations.of(context)!.codec;
+      case FinampFeatureChipType.bitRate:
+        return AppLocalizations.of(context)!.bitRate;
+      case FinampFeatureChipType.bitDepth:
+        return AppLocalizations.of(context)!.bitDepth;
+      case FinampFeatureChipType.size:
+        return AppLocalizations.of(context)!.size;
+      case FinampFeatureChipType.normalizationGain:
+        return AppLocalizations.of(context)!.normalizationGain;
+      case FinampFeatureChipType.sampleRate:
+        return AppLocalizations.of(context)!.sampleRate;
+    }
+  }
+}
+
+@JsonSerializable()
+@HiveType(typeId: 75)
+class FinampFeatureChipsConfiguration {
+  const FinampFeatureChipsConfiguration({
+    required this.enabled,
+    required this.features,
+  });
+
+  @HiveField(0)
+  final bool enabled;
+
+  @HiveField(1)
+  final List<FinampFeatureChipType> features;
+
+  factory FinampFeatureChipsConfiguration.fromJson(Map<String, dynamic> json) =>
+      _$FinampFeatureChipsConfigurationFromJson(json);
+
+  Map<String, dynamic> toJson() =>
+      _$FinampFeatureChipsConfigurationToJson(this);
+
+  @override
+  String toString() {
+    return jsonEncode(toJson());
+  }
+
+  // implement copyWith
+  FinampFeatureChipsConfiguration copyWith({
+    bool? enabled,
+    List<FinampFeatureChipType>? features,
+  }) {
+    return FinampFeatureChipsConfiguration(
+      enabled: enabled ?? this.enabled,
+      features: features ?? this.features,
+    );
+  }
+}
+
+
+@HiveType(typeId: 76)
+class DeviceInfo {
+  DeviceInfo({
+    required this.name,
+    required this.id,
+  });
+
+  @HiveField(0)
+  String name;
+
+  @HiveField(1)
+  String? id;
 }

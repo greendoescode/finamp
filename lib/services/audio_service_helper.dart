@@ -19,7 +19,7 @@ class AudioServiceHelper {
   final audioServiceHelperLogger = Logger("AudioServiceHelper");
 
   /// Shuffles every song in the user's current view.
-  Future<void> shuffleAll(bool isFavourite) async {
+  Future<void> shuffleAll(bool onlyShowFavourites) async {
     List<jellyfin_models.BaseItemDto>? items;
 
     if (FinampSettingsHelper.finampSettings.isOffline) {
@@ -27,7 +27,10 @@ class AudioServiceHelper {
       // This is a bit inefficient since we have to get all of the songs and
       // shuffle them before making a sublist, but I couldn't think of a better
       // way.
-      items = (await _isarDownloader.getAllSongs())
+      items = (await _isarDownloader.getAllSongs(
+              viewFilter: _finampUserHelper.currentUser?.currentView?.id,
+              nullableViewFilters: FinampSettingsHelper
+                  .finampSettings.showDownloadsWithUnknownLibrary))
           .map((e) => e.baseItem!)
           .toList();
       items.shuffle();
@@ -41,7 +44,7 @@ class AudioServiceHelper {
       items = await _jellyfinApiHelper.getItems(
         parentItem: _finampUserHelper.currentUser!.currentView,
         includeItemTypes: "Audio",
-        filters: isFavourite ? "IsFavorite" : null,
+        filters: onlyShowFavourites ? "IsFavorite" : null,
         limit: FinampSettingsHelper.finampSettings.songShuffleItemCount,
         sortBy: "Random",
       );
@@ -51,11 +54,11 @@ class AudioServiceHelper {
       await _queueService.startPlayback(
         items: items,
         source: QueueItemSource(
-          type: isFavourite
+          type: onlyShowFavourites
               ? QueueItemSourceType.favorites
               : QueueItemSourceType.allSongs,
           name: QueueItemSourceName(
-            type: isFavourite
+            type: onlyShowFavourites
                 ? QueueItemSourceNameType.yourLikes
                 : QueueItemSourceNameType.shuffleAll,
           ),
@@ -140,6 +143,35 @@ class AudioServiceHelper {
                 localizationParameter: albums.map((e) => e.name).join(" & ")),
             id: albums.first.id,
             item: albums.first,
+          ),
+          order: FinampPlaybackOrder
+              .linear, // instant mixes should have their order determined by the server, especially to make sure the first item is the one that the mix is based off of
+        );
+        _jellyfinApiHelper.clearAlbumMixBuilderList();
+      }
+    } catch (e) {
+      audioServiceHelperLogger.severe(e);
+      return Future.error(e);
+    }
+  }
+
+  /// Start instant mix from a selection of genres.
+  Future<void> startInstantMixForGenres(List<BaseItemDto> genres) async {
+    List<jellyfin_models.BaseItemDto>? items;
+
+    try {
+      items = await _jellyfinApiHelper
+          .getGenreMix(genres.map((e) => e.id).toList());
+      if (items != null) {
+        await _queueService.startPlayback(
+          items: items,
+          source: QueueItemSource(
+            type: QueueItemSourceType.genreMix,
+            name: QueueItemSourceName(
+                type: QueueItemSourceNameType.mix,
+                localizationParameter: genres.map((e) => e.name).join(" & ")),
+            id: genres.first.id,
+            item: genres.first,
           ),
           order: FinampPlaybackOrder
               .linear, // instant mixes should have their order determined by the server, especially to make sure the first item is the one that the mix is based off of

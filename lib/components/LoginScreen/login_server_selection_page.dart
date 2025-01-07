@@ -3,6 +3,7 @@ import 'package:finamp/models/jellyfin_models.dart';
 import 'package:finamp/services/jellyfin_api_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get_it/get_it.dart';
 import 'package:logging/logging.dart';
@@ -73,6 +74,7 @@ class _LoginServerSelectionPageState extends State<LoginServerSelectionPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 32.0),
         child: Center(
           child: Column(
             children: [
@@ -80,17 +82,18 @@ class _LoginServerSelectionPageState extends State<LoginServerSelectionPage> {
                 padding: const EdgeInsets.only(top: 32.0, bottom: 20.0),
                 child: Hero(
                   tag: "finamp_logo",
-                  child: Image.asset(
-                    'images/finamp_cropped.png',
+                  child: SvgPicture.asset(
+                    'images/finamp_cropped.svg',
                     width: 75,
                     height: 75,
                   ),
                 ),
               ),
-              Text(AppLocalizations.of(context)!.loginFlowServerSelectionHeading,
+              Text(
+                  AppLocalizations.of(context)!.loginFlowServerSelectionHeading,
                   style: Theme.of(context).textTheme.headlineMedium),
               Padding(
-                padding: const EdgeInsets.only(top: 12.0, bottom: 12.0),
+                padding: const EdgeInsets.only(top: 20.0, bottom: 12.0),
                 child: Align(
                   alignment: Alignment.centerLeft,
                   child: SimpleButton(
@@ -106,39 +109,40 @@ class _LoginServerSelectionPageState extends State<LoginServerSelectionPage> {
               _buildServerUrlInput(context),
               ConstrainedBox(
                 constraints: const BoxConstraints(minHeight: 95.0),
-                child: widget.serverState.baseUrlToTest != null && widget.serverState.manualServer == null ? 
-                  Padding(
-                    padding: const EdgeInsets.only(top: 12.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Padding(
-                          padding: EdgeInsets.all(4.0),
-                          child: CircularProgressIndicator(),
+                child: widget.serverState.baseUrlToTest != null &&
+                        widget.serverState.manualServer == null
+                    ? Padding(
+                        padding: const EdgeInsets.only(top: 12.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Padding(
+                              padding: EdgeInsets.all(4.0),
+                              child: CircularProgressIndicator(),
+                            ),
+                            const SizedBox(width: 8.0),
+                            Text(
+                              AppLocalizations.of(context)!.connectingToServer,
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 8.0),
-                        Text(
-                          AppLocalizations.of(context)!.connectingToServer,
-                          style: Theme.of(context).textTheme.bodySmall,
+                      )
+                    : Visibility(
+                        visible: widget.serverState.manualServer != null,
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 12.0),
+                          child: JellyfinServerSelectionWidget(
+                            baseUrl: widget.serverState.baseUrl,
+                            serverInfo: widget.serverState.manualServer,
+                            onPressed: () {
+                              widget.onServerSelected?.call(
+                                  widget.serverState.manualServer!,
+                                  widget.serverState.baseUrl!);
+                            },
+                          ),
                         ),
-                      ],
-                    ),
-                  ) :
-                  Visibility(
-                    visible: widget.serverState.manualServer != null,
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 12.0),
-                      child: JellyfinServerSelectionWidget(
-                        baseUrl: widget.serverState.baseUrl,
-                        serverInfo: widget.serverState.manualServer,
-                        onPressed: () {
-                          widget.onServerSelected?.call(
-                              widget.serverState.manualServer!,
-                              widget.serverState.baseUrl!);
-                        },
                       ),
-                                  ),
-                  ),
               ),
               Padding(
                 padding: const EdgeInsets.only(top: 20.0, bottom: 16.0),
@@ -155,7 +159,6 @@ class _LoginServerSelectionPageState extends State<LoginServerSelectionPage> {
                   clipBehavior: Clip.antiAlias,
                   itemCount: widget.serverState.discoveredServers.length + 1,
                   itemBuilder: (context, index) {
-
                     if (index < widget.serverState.discoveredServers.length) {
                       // get key and value
                       final entry = widget.serverState.discoveredServers.entries
@@ -181,20 +184,23 @@ class _LoginServerSelectionPageState extends State<LoginServerSelectionPage> {
                           children: [
                             const Padding(
                               padding: EdgeInsets.all(4.0),
-                              child: SizedBox(height: 20.0, width: 20.0, child: CircularProgressIndicator(
-                                strokeWidth: 2.0,
-                              )),
+                              child: SizedBox(
+                                  height: 20.0,
+                                  width: 20.0,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.0,
+                                  )),
                             ),
                             const SizedBox(width: 8.0),
                             Text(
-                              AppLocalizations.of(context)!.loginFlowLocalNetworkServersScanningForServers,
+                              AppLocalizations.of(context)!
+                                  .loginFlowLocalNetworkServersScanningForServers,
                               style: Theme.of(context).textTheme.bodySmall,
                             ),
                           ],
                         ),
                       );
                     }
-
                   },
                 ),
               ),
@@ -261,7 +267,8 @@ class _LoginServerSelectionPageState extends State<LoginServerSelectionPage> {
               autocorrect: false,
               keyboardType: TextInputType.url,
               autofillHints: const [AutofillHints.url],
-              decoration: inputFieldDecoration(AppLocalizations.of(context)!.serverUrlHint),
+              decoration: inputFieldDecoration(
+                  AppLocalizations.of(context)!.serverUrlHint),
               textInputAction: TextInputAction.next,
               onEditingComplete: () => node.nextFocus(),
               onChanged: (value) async {
@@ -284,7 +291,6 @@ class _LoginServerSelectionPageState extends State<LoginServerSelectionPage> {
       ),
     );
   }
-
 }
 
 class JellyfinServerSelectionWidget extends StatelessWidget {
@@ -354,7 +360,8 @@ class JellyfinServerSelectionWidget extends StatelessWidget {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
             ),
             onPressed: onPressed,
             child: buildContent(),
@@ -364,7 +371,8 @@ class JellyfinServerSelectionWidget extends StatelessWidget {
               color: Theme.of(context).colorScheme.primaryContainer,
               borderRadius: BorderRadius.circular(10),
             ),
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
             child: buildContent(),
           );
   }
