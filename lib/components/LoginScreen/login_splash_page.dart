@@ -1,3 +1,4 @@
+import 'package:finamp/components/Buttons/cta_huge.dart';
 import 'package:finamp/components/Buttons/cta_large.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -58,7 +59,7 @@ class LoginSplashPage extends StatelessWidget {
               const SizedBox(
                 height: 80,
               ),
-              CTALarge(
+              CTAHuge(
                 text: AppLocalizations.of(context)!.loginFlowGetStarted,
                 icon: TablerIcons.music,
                 onPressed: onGetStartedPressed,

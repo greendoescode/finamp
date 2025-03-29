@@ -24,19 +24,6 @@ import '../services/jellyfin_api_helper.dart';
 
 final _musicScreenLogger = Logger("MusicScreen");
 
-void postLaunchHook(WidgetRef ref) async {
-  final downloadsService = GetIt.instance<DownloadsService>();
-
-  // make sure playlist info is downloaded for users upgrading from older versions and new installations AFTER logging in and selecting their libraries/views
-  if (!FinampSettingsHelper.finampSettings.hasDownloadedPlaylistInfo) {
-    await downloadsService.addDefaultPlaylistInfoDownload().catchError((e) {
-      // log error without snackbar, we don't want users to be greeted with errors on first launch
-      _musicScreenLogger.severe("Failed to download playlist metadata: $e");
-    });
-    FinampSetters.setHasDownloadedPlaylistInfo(true);
-  }
-}
-
 class MusicScreen extends ConsumerStatefulWidget {
   const MusicScreen({super.key});
 
@@ -106,7 +93,6 @@ class _MusicScreenState extends ConsumerState<MusicScreen>
   @override
   void initState() {
     super.initState();
-    postLaunchHook(ref);
   }
 
   @override

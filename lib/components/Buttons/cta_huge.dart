@@ -2,13 +2,13 @@ import 'package:finamp/services/feedback_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 
-class CTALarge extends StatelessWidget {
+class CTAHuge extends StatelessWidget {
   final String text;
   final IconData icon;
   final bool vertical;
   final void Function() onPressed;
 
-  const CTALarge(
+  const CTAHuge(
       {super.key,
       required this.text,
       required this.icon,
@@ -26,11 +26,11 @@ class CTALarge extends StatelessWidget {
       style: ButtonStyle(
         shape: WidgetStateProperty.all<RoundedRectangleBorder>(
           RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(16),
           ),
         ),
         padding: WidgetStateProperty.all<EdgeInsetsGeometry>(
-          const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
         ),
         backgroundColor: WidgetStateProperty.all<Color>(
             Theme.of(context).brightness == Brightness.dark
@@ -57,7 +57,7 @@ class CTALarge extends StatelessWidget {
             text,
             style: const TextStyle(
               color: Colors.white,
-              fontSize: 16,
+              fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
           ),
