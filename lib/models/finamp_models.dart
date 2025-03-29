@@ -2605,3 +2605,44 @@ enum ReleaseDateFormat {
     }
   }
 }
+
+@HiveType(typeId: 78)
+enum HomeScreenSectionType {
+  @HiveField(0)
+  listenAgain,
+  @HiveField(1)
+  newlyAdded,
+  @HiveField(2)
+  favoriteArtists;
+
+  /// Human-readable version of the [HomeScreenSectionType]
+  @override
+  @Deprecated("Use toLocalisedString when possible")
+  String toString() => _humanReadableName(this);
+
+  String toLocalisedString(BuildContext context) =>
+      _humanReadableLocalisedName(this, context);
+
+  String _humanReadableName(HomeScreenSectionType homeScreenSectionType) {
+    switch (homeScreenSectionType) {
+      case HomeScreenSectionType.listenAgain:
+        return "Listen Again";
+      case HomeScreenSectionType.newlyAdded:
+        return "Newly Added";
+      case HomeScreenSectionType.favoriteArtists:
+        return "Favorite Artists";
+    }
+  }
+
+  String _humanReadableLocalisedName(
+      HomeScreenSectionType homeScreenSectionType, BuildContext context) {
+    switch (homeScreenSectionType) {
+      case HomeScreenSectionType.listenAgain:
+        return "Listen Again*";
+      case HomeScreenSectionType.newlyAdded:
+        return "Newly Added*";
+      case HomeScreenSectionType.favoriteArtists:
+        return "Favorite Artists*";
+    }
+  }
+}
