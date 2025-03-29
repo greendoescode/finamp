@@ -25,7 +25,13 @@ import '../services/jellyfin_api_helper.dart';
 final _musicScreenLogger = Logger("MusicScreen");
 
 class MusicScreen extends ConsumerStatefulWidget {
-  const MusicScreen({super.key});
+  const MusicScreen({
+    super.key,
+    this.initialTab,
+  });
+
+  /// The initial tab type to show. Can also be provided as an argument in a named route
+  final TabContentType? initialTab;
 
   static const routeName = "/music";
 
@@ -84,7 +90,13 @@ class _MusicScreenState extends ConsumerState<MusicScreen>
           .where((element) => element.value)
           .length,
       vsync: this,
-      initialIndex: ModalRoute.of(context)?.settings.arguments as int? ?? 0,
+      initialIndex: FinampSettingsHelper.finampSettings.showTabs.entries
+          .where((element) => element.value == true)
+          .map((e) => e.key)
+          .toList()
+          .indexOf(widget.initialTab ??
+              ModalRoute.of(context)!.settings.arguments as TabContentType? ??
+              FinampSettingsHelper.finampSettings.tabOrder[0]),
     );
 
     _tabController!.addListener(_tabIndexCallback);

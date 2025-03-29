@@ -48,11 +48,7 @@ void navigateToSource(BuildContext context, QueueItemSource source) {
       break;
     case QueueItemSourceType.allTracks:
       Navigator.of(context).pushNamed(MusicScreen.routeName,
-          arguments: FinampSettingsHelper.finampSettings.showTabs.entries
-              .where((element) => element.value == true)
-              .map((e) => e.key)
-              .toList()
-              .indexOf(TabContentType.tracks));
+          arguments: TabContentType.tracks);
       break;
     case QueueItemSourceType.nextUp:
       break;
