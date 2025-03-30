@@ -63,7 +63,7 @@ class _HomeScreenContentState extends ConsumerState<HomeScreenContent> {
               runAlignment: WrapAlignment.center,
               children: [
                 CTALarge(
-                  text: 'Song Mix',
+                  text: 'Song Mix*',
                   icon: TablerIcons.arrows_shuffle,
                   vertical: true,
                   minWidth: 110,
@@ -73,7 +73,7 @@ class _HomeScreenContentState extends ConsumerState<HomeScreenContent> {
                   },
                 ),
                 CTALarge(
-                  text: 'Recents',
+                  text: 'Recents*',
                   icon: TablerIcons.calendar,
                   vertical: true,
                   minWidth: 110,
@@ -85,7 +85,7 @@ class _HomeScreenContentState extends ConsumerState<HomeScreenContent> {
                   },
                 ),
                 CTALarge(
-                  text: 'Decade Mix',
+                  text: 'Decade Mix*',
                   icon: TablerIcons.chevrons_left,
                   vertical: true,
                   minWidth: 110,
@@ -102,11 +102,11 @@ class _HomeScreenContentState extends ConsumerState<HomeScreenContent> {
               spacing: 0,
               runSpacing: 8,
               direction: Axis.horizontal,
-              alignment: WrapAlignment.spaceBetween,
+              alignment: WrapAlignment.spaceAround,
               runAlignment: WrapAlignment.center,
               children: [
-                CTASmall(
-                  text: 'Tracks',
+                SimpleButton(
+                  text: 'Tracks*',
                   icon: TablerIcons.music,
                   onPressed: () {
                     Navigator.pushNamed(
@@ -116,8 +116,8 @@ class _HomeScreenContentState extends ConsumerState<HomeScreenContent> {
                     );
                   },
                 ),
-                CTASmall(
-                  text: 'Playlists',
+                SimpleButton(
+                  text: 'Playlists*',
                   icon: TablerIcons.playlist,
                   onPressed: () {
                     Navigator.pushNamed(
@@ -127,8 +127,8 @@ class _HomeScreenContentState extends ConsumerState<HomeScreenContent> {
                     );
                   },
                 ),
-                CTASmall(
-                  text: 'Albums',
+                SimpleButton(
+                  text: 'Albums*',
                   icon: TablerIcons.disc,
                   onPressed: () {
                     Navigator.pushNamed(
@@ -142,19 +142,26 @@ class _HomeScreenContentState extends ConsumerState<HomeScreenContent> {
             ),
             const SizedBox(height: 24),
             _buildSection(
-                'Listen Again',
-                _buildHorizontalList(
-                    loadHomeSectionItems(HomeScreenSectionType.listenAgain))),
+                'Pins*',
+                _buildHorizontalList(loadHomeSectionItems(HomeScreenSectionInfo(
+                    type: HomeScreenSectionType.collection,
+                    itemId: BaseItemId(""))))),
+            _buildSection(
+                'Listen Again*',
+                _buildHorizontalList(loadHomeSectionItems(HomeScreenSectionInfo(
+                    type: HomeScreenSectionType.listenAgain)))),
             const SizedBox(height: 8),
             _buildSection(
-                'Newly Added',
+                'Newly Added*',
                 _buildHorizontalList(
-                    loadHomeSectionItems(HomeScreenSectionType.newlyAdded))),
+                    loadHomeSectionItems(HomeScreenSectionInfo(
+                    type: HomeScreenSectionType.newlyAdded)))),
             const SizedBox(height: 8),
             _buildSection(
-                'Favorite Artists',
+                'Favorite Artists*',
                 _buildHorizontalList(loadHomeSectionItems(
-                    HomeScreenSectionType.favoriteArtists))),
+                    HomeScreenSectionInfo(
+                    type: HomeScreenSectionType.favoriteArtists)))),
           ],
         ),
       ),
@@ -205,7 +212,7 @@ class _HomeScreenContentState extends ConsumerState<HomeScreenContent> {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return SizedBox(
-            height: 200,
+            height: 175,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               itemCount: 5, // Show 5 skeleton items
@@ -267,7 +274,7 @@ class _HomeScreenContentState extends ConsumerState<HomeScreenContent> {
 }
 
 Future<List<BaseItemDto>?> loadHomeSectionItems(
-    HomeScreenSectionType sectionType) async {
+    HomeScreenSectionInfo sectionInfo) async {
   final jellyfinApiHelper = GetIt.instance<JellyfinApiHelper>();
   final finampUserHelper = GetIt.instance<FinampUserHelper>();
   final settings = FinampSettingsHelper.finampSettings;
@@ -276,7 +283,7 @@ Future<List<BaseItemDto>?> loadHomeSectionItems(
 
   final int amountOfItems = 10;
 
-  switch (sectionType) {
+  switch (sectionInfo.type) {
     case HomeScreenSectionType.listenAgain:
       newItemsFuture = jellyfinApiHelper.getItems(
         parentItem: finampUserHelper.currentUser?.currentView,
@@ -314,6 +321,25 @@ Future<List<BaseItemDto>?> loadHomeSectionItems(
         sortBy: SortBy.datePlayed.jellyfinName(null),
         sortOrder: SortOrder.descending.toString(),
         filters: "IsFavorite",
+        startIndex: 0,
+        limit: amountOfItems,
+      );
+      break;
+    case HomeScreenSectionType.collection:
+      final baseItem = await jellyfinApiHelper.getItemById(sectionInfo
+          .itemId!); //TODO I don't like this null check. Enforcing IDs for collection types would be much nice, but how to do that while allowing dynamic IDs? Enums don't seem to work
+      newItemsFuture = jellyfinApiHelper.getItems(
+        parentItem: baseItem,
+        // includeItemTypes: [
+        //   BaseItemDtoType.album.idString,
+        //   BaseItemDtoType.playlist.idString,
+        //   BaseItemDtoType.artist.idString,
+        //   BaseItemDtoType.genre.idString,
+        //   BaseItemDtoType.audioBook.idString,
+        // ].join(","),
+        recursive:
+            false, //!!! prevent loading tracks and albums from inside the collection items
+        // filters: "IsFavorite",
         startIndex: 0,
         limit: amountOfItems,
       );

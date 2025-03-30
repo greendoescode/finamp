@@ -2613,7 +2613,9 @@ enum HomeScreenSectionType {
   @HiveField(1)
   newlyAdded,
   @HiveField(2)
-  favoriteArtists;
+  favoriteArtists,
+  @HiveField(3)
+  collection;
 
   /// Human-readable version of the [HomeScreenSectionType]
   @override
@@ -2631,6 +2633,8 @@ enum HomeScreenSectionType {
         return "Newly Added";
       case HomeScreenSectionType.favoriteArtists:
         return "Favorite Artists";
+      case HomeScreenSectionType.collection:
+        return "Collection";
     }
   }
 
@@ -2643,6 +2647,32 @@ enum HomeScreenSectionType {
         return "Newly Added*";
       case HomeScreenSectionType.favoriteArtists:
         return "Favorite Artists*";
+      case HomeScreenSectionType.collection:
+        return "Collection*";
     }
+  }
+}
+
+@JsonSerializable(converters: [BaseItemIdConverter()])
+@HiveType(typeId: 79)
+class HomeScreenSectionInfo {
+  @HiveField(0)
+  final HomeScreenSectionType type;
+  @HiveField(1)
+  final BaseItemId? itemId;
+
+  HomeScreenSectionInfo({
+    required this.type,
+    this.itemId,
+  });
+
+  factory HomeScreenSectionInfo.fromJson(Map<String, dynamic> json) =>
+      _$HomeScreenSectionInfoFromJson(json);
+
+  Map<String, dynamic> toJson() => _$HomeScreenSectionInfoToJson(this);
+
+  @override
+  String toString() {
+    return jsonEncode(toJson());
   }
 }

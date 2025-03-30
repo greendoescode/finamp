@@ -20,6 +20,7 @@ class LoginScreen extends StatelessWidget {
             surfaceTintColor: Colors.transparent),
       ),
       child: const Scaffold(
+        resizeToAvoidBottomInset: true,
         body: SafeArea(
           child: LoginFlow(),
         ),

@@ -25,51 +25,47 @@ class AlbumItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      // In AlbumItem, the OpenContainer handles padding.
-      margin: EdgeInsets.zero,
-      child: Column(
-        children: [
-          Stack(
-            children: [
-              AlbumImage(item: item),
-              Positioned.fill(
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: onTap,
-                  ),
+    return Column(
+      children: [
+        Stack(
+          children: [
+            AlbumImage(item: item),
+            Positioned.fill(
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: onTap,
                 ),
+              ),
+            )
+          ],
+        ),
+        SizedBox(
+          height: 4,
+        ),
+        addSettingsListener
+            ? // We need this ValueListenableBuilder to react to changes to
+            // showTextOnGridView. When shown in a MusicScreen, this widget
+            // would refresh anyway since MusicScreen also listens to
+            // FinampSettings, but there may be cases where this widget is used
+            // elsewhere.
+            ValueListenableBuilder<Box<FinampSettings>>(
+                valueListenable: FinampSettingsHelper.finampSettingsListener,
+                builder: (_, box, __) {
+                  if (box.get("FinampSettings")!.showTextOnGridView) {
+                    return _AlbumItemCardText(
+                        item: item, parentType: parentType);
+                  } else {
+                    // ValueListenableBuilder doesn't let us return null, so we
+                    // return a 0-sized SizedBox.
+                    return const SizedBox.shrink();
+                  }
+                },
               )
-            ],
-          ),
-          SizedBox(
-            height: 4,
-          ),
-          addSettingsListener
-              ? // We need this ValueListenableBuilder to react to changes to
-              // showTextOnGridView. When shown in a MusicScreen, this widget
-              // would refresh anyway since MusicScreen also listens to
-              // FinampSettings, but there may be cases where this widget is used
-              // elsewhere.
-              ValueListenableBuilder<Box<FinampSettings>>(
-                  valueListenable: FinampSettingsHelper.finampSettingsListener,
-                  builder: (_, box, __) {
-                    if (box.get("FinampSettings")!.showTextOnGridView) {
-                      return _AlbumItemCardText(
-                          item: item, parentType: parentType);
-                    } else {
-                      // ValueListenableBuilder doesn't let us return null, so we
-                      // return a 0-sized SizedBox.
-                      return const SizedBox.shrink();
-                    }
-                  },
-                )
-              : FinampSettingsHelper.finampSettings.showTextOnGridView
-                  ? _AlbumItemCardText(item: item, parentType: parentType)
-                  : const SizedBox.shrink(),
-        ],
-      ),
+            : FinampSettingsHelper.finampSettings.showTextOnGridView
+                ? _AlbumItemCardText(item: item, parentType: parentType)
+                : const SizedBox.shrink(),
+      ],
     );
   }
 }
@@ -89,45 +85,27 @@ class _AlbumItemCardText extends StatelessWidget {
 
     return Align(
       alignment: Alignment.bottomCenter,
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.bottomCenter,
-            end: Alignment.topCenter,
-            colors: [
-              // We fade from half transparent black to transparent so that text is visible on bright images
-              Colors.black.withOpacity(0.5),
-              Colors.transparent,
-            ],
-          ),
-        ),
-        child: Align(
-          alignment: Alignment.bottomLeft,
-          child: Wrap(
-            // Runs must be horizontal to constrain child width.  Use large
-            // spacing to force subtitle to wrap to next run
-            spacing: 1000,
-            children: [
-              Text(
-                item.name ?? "Unknown Name",
+      child: Align(
+        alignment: Alignment.bottomLeft,
+        child: Wrap(
+          // Runs must be horizontal to constrain child width.  Use large
+          // spacing to force subtitle to wrap to next run
+          spacing: 1000,
+          children: [
+            Text(item.name ?? "Unknown Name",
                 overflow: TextOverflow.ellipsis,
                 maxLines: 2,
                 style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                      color: Colors.white,
-                    ),
-              ),
-              if (subtitle != null)
-                Text(
-                  subtitle,
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 2,
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodySmall!
-                      .copyWith(color: Colors.white.withOpacity(0.7)),
-                )
-            ],
-          ),
+                      fontWeight: FontWeight.w500,
+                    )),
+            if (subtitle != null)
+              Text(
+                subtitle,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 2,
+                style: Theme.of(context).textTheme.bodySmall,
+              )
+          ],
         ),
       ),
     );
