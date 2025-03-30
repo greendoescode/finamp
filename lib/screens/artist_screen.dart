@@ -27,7 +27,7 @@ class ArtistScreen extends StatelessWidget {
           parent: artist,
         ),
       ),
-      bottomNavigationBar: const NowPlayingBar(),
+      bottomSheet: const NowPlayingBar(),
     );
   }
 }

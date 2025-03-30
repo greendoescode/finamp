@@ -34,7 +34,7 @@ class CTAHuge extends StatelessWidget {
         ),
         backgroundColor: WidgetStateProperty.all<Color>(
             Theme.of(context).brightness == Brightness.dark
-                ? accentColor.withOpacity(0.3)
+                ? accentColor.withOpacity(0.15)
                 : Color.alphaBlend(accentColor.withOpacity(0.8), Colors.white)),
       ),
       child: Wrap(

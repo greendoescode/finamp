@@ -9,17 +9,15 @@ import '../album_image.dart';
 
 /// Card content for AlbumItem. You probably shouldn't use this widget directly,
 /// use AlbumItem instead.
-class AlbumItemCard extends StatelessWidget {
-  const AlbumItemCard({
+class ArtistItemCard extends StatelessWidget {
+  const ArtistItemCard({
     super.key,
     required this.item,
-    this.parentType,
     this.onTap,
     this.addSettingsListener = false,
   });
 
   final BaseItemDto item;
-  final String? parentType;
   final void Function()? onTap;
   final bool addSettingsListener;
 
@@ -29,10 +27,11 @@ class AlbumItemCard extends StatelessWidget {
       // In AlbumItem, the OpenContainer handles padding.
       margin: EdgeInsets.zero,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Stack(
             children: [
-              AlbumImage(item: item),
+              AlbumImage(item: item, borderRadius: BorderRadius.circular(9999)),
               Positioned.fill(
                 child: Material(
                   color: Colors.transparent,
@@ -43,7 +42,7 @@ class AlbumItemCard extends StatelessWidget {
               )
             ],
           ),
-          SizedBox(
+          const SizedBox(
             height: 4,
           ),
           addSettingsListener
@@ -56,8 +55,7 @@ class AlbumItemCard extends StatelessWidget {
                   valueListenable: FinampSettingsHelper.finampSettingsListener,
                   builder: (_, box, __) {
                     if (box.get("FinampSettings")!.showTextOnGridView) {
-                      return _AlbumItemCardText(
-                          item: item, parentType: parentType);
+                      return _ArtistItemCardText(item: item);
                     } else {
                       // ValueListenableBuilder doesn't let us return null, so we
                       // return a 0-sized SizedBox.
@@ -66,7 +64,7 @@ class AlbumItemCard extends StatelessWidget {
                   },
                 )
               : FinampSettingsHelper.finampSettings.showTextOnGridView
-                  ? _AlbumItemCardText(item: item, parentType: parentType)
+                  ? _ArtistItemCardText(item: item)
                   : const SizedBox.shrink(),
         ],
       ),
@@ -74,61 +72,25 @@ class AlbumItemCard extends StatelessWidget {
   }
 }
 
-class _AlbumItemCardText extends StatelessWidget {
-  const _AlbumItemCardText({
+class _ArtistItemCardText extends StatelessWidget {
+  const _ArtistItemCardText({
     required this.item,
-    required this.parentType,
   });
 
   final BaseItemDto item;
-  final String? parentType;
 
   @override
   Widget build(BuildContext context) {
-    final subtitle = generateSubtitle(item, parentType, context);
-
     return Align(
       alignment: Alignment.bottomCenter,
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.bottomCenter,
-            end: Alignment.topCenter,
-            colors: [
-              // We fade from half transparent black to transparent so that text is visible on bright images
-              Colors.black.withOpacity(0.5),
-              Colors.transparent,
-            ],
-          ),
-        ),
-        child: Align(
-          alignment: Alignment.bottomLeft,
-          child: Wrap(
-            // Runs must be horizontal to constrain child width.  Use large
-            // spacing to force subtitle to wrap to next run
-            spacing: 1000,
-            children: [
-              Text(
-                item.name ?? "Unknown Name",
-                overflow: TextOverflow.ellipsis,
-                maxLines: 2,
-                style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                      color: Colors.white,
-                    ),
-              ),
-              if (subtitle != null)
-                Text(
-                  subtitle,
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 2,
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodySmall!
-                      .copyWith(color: Colors.white.withOpacity(0.7)),
-                )
-            ],
-          ),
-        ),
+      child: Text(
+        item.name ?? "Unknown Name",
+        overflow: TextOverflow.ellipsis,
+        maxLines: 3,
+        style: Theme.of(context)
+            .textTheme
+            .bodyMedium!
+            .copyWith(color: Colors.white, fontWeight: FontWeight.w500),
       ),
     );
   }

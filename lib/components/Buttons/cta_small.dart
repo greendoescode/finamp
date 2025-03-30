@@ -34,7 +34,7 @@ class CTASmall extends StatelessWidget {
         ),
         backgroundColor: WidgetStateProperty.all<Color>(
             Theme.of(context).brightness == Brightness.dark
-                ? accentColor.withOpacity(0.3)
+                ? accentColor.withOpacity(0.15)
                 : Color.alphaBlend(accentColor.withOpacity(0.8), Colors.white)),
       ),
       child: Wrap(
@@ -51,7 +51,7 @@ class CTASmall extends StatelessWidget {
             weight: 1.0,
           ),
           const SizedBox(
-            width: 6,
+            width: 8,
             height: 4,
           ),
           Text(
@@ -59,7 +59,7 @@ class CTASmall extends StatelessWidget {
             style: const TextStyle(
               color: Colors.white,
               fontSize: 14,
-              fontWeight: FontWeight.normal,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],

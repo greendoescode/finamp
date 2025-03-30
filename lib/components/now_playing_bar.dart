@@ -174,8 +174,7 @@ class NowPlayingBar extends ConsumerWidget {
           ),
         );
 
-    return SafeArea(
-        child: Padding(
+    return Padding(
       padding: const EdgeInsets.only(left: 12.0, bottom: 12.0, right: 12.0),
       child: Semantics.fromProperties(
         properties: SemanticsProperties(
@@ -584,7 +583,7 @@ class NowPlayingBar extends ConsumerWidget {
           ),
         ),
       ),
-    ));
+    );
   }
 
   @override
@@ -598,32 +597,28 @@ class NowPlayingBar extends ConsumerWidget {
         tag: "nowplaying",
         createRectTween: (from, to) => RectTween(begin: from, end: from),
         child: PlayerScreenTheme(
-          // Scaffold ignores system elements padding if bottom bar is present, so we must
-          // use SafeArea in all cases to include it in our height
-          child: SafeArea(
-            child: StreamBuilder<FinampQueueInfo?>(
-                stream: queueService.getQueueStream(),
-                initialData: queueService.getQueue(),
-                builder: (context, snapshot) {
-                  if (snapshot.hasData &&
-                      snapshot.data!.saveState == SavedQueueState.loading &&
-                      !usingPlayerSplitScreen) {
-                    return buildLoadingQueueBar(context, null);
-                  } else if (snapshot.hasData &&
-                      snapshot.data!.saveState == SavedQueueState.failed &&
-                      !usingPlayerSplitScreen) {
-                    return buildLoadingQueueBar(
-                        context, queueService.retryQueueLoad);
-                  } else if (snapshot.hasData &&
-                      snapshot.data!.currentTrack != null &&
-                      !usingPlayerSplitScreen) {
-                    return buildNowPlayingBar(
-                        context, snapshot.data!.currentTrack!);
-                  } else {
-                    return const SizedBox.shrink();
-                  }
-                }),
-          ),
+          child: StreamBuilder<FinampQueueInfo?>(
+              stream: queueService.getQueueStream(),
+              initialData: queueService.getQueue(),
+              builder: (context, snapshot) {
+                if (snapshot.hasData &&
+                    snapshot.data!.saveState == SavedQueueState.loading &&
+                    !usingPlayerSplitScreen) {
+                  return buildLoadingQueueBar(context, null);
+                } else if (snapshot.hasData &&
+                    snapshot.data!.saveState == SavedQueueState.failed &&
+                    !usingPlayerSplitScreen) {
+                  return buildLoadingQueueBar(
+                      context, queueService.retryQueueLoad);
+                } else if (snapshot.hasData &&
+                    snapshot.data!.currentTrack != null &&
+                    !usingPlayerSplitScreen) {
+                  return buildNowPlayingBar(
+                      context, snapshot.data!.currentTrack!);
+                } else {
+                  return const SizedBox.shrink();
+                }
+              }),
         ));
   }
 }

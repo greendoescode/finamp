@@ -43,7 +43,7 @@ class CTAMedium extends StatelessWidget {
         ),
         backgroundColor: WidgetStateProperty.all<Color>(
           Theme.of(context).brightness == Brightness.dark
-              ? accentColor.withOpacity(0.3)
+              ? accentColor.withOpacity(0.15)
               : accentColor,
         ),
       ),
@@ -62,7 +62,7 @@ class CTAMedium extends StatelessWidget {
               color: Theme.of(context).brightness == Brightness.dark
                   ? accentColor
                   : Colors.white,
-              weight: 1.5,
+              weight: 1.0,
             ),
             const SizedBox(
               width: 8,
@@ -71,8 +71,8 @@ class CTAMedium extends StatelessWidget {
               text,
               style: const TextStyle(
                 color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ],

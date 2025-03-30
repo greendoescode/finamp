@@ -78,6 +78,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       onPopInvokedWithResult: (popped, _) {},
       child: Scaffold(
         extendBody: true,
+        extendBodyBehindAppBar: true,
+        resizeToAvoidBottomInset:
+            false, //TODO set this to true for the search screen
+        bottomSheet: const NowPlayingBar(),
         appBar: FinampHomeScreenHeader(),
         bottomNavigationBar: const FinampNavigationBar(),
         drawer: const MusicScreenDrawer(),

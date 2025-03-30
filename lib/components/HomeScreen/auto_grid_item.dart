@@ -1,5 +1,6 @@
 import 'package:finamp/components/AlbumScreen/track_list_tile.dart';
 import 'package:finamp/components/MusicScreen/album_item.dart';
+import 'package:finamp/components/MusicScreen/artist_item.dart';
 import 'package:finamp/models/finamp_models.dart';
 import 'package:finamp/models/jellyfin_models.dart';
 import 'package:flutter/material.dart';
@@ -22,7 +23,7 @@ class AutoGridItem extends ConsumerWidget {
           album: baseItem,
           isPlaylist: false,
           isGrid: true,
-          gridAddSettingsListener: false,
+          gridAddSettingsListener: true,
         );
         break;
       case BaseItemDtoType.playlist:
@@ -31,16 +32,15 @@ class AutoGridItem extends ConsumerWidget {
           album: baseItem,
           isPlaylist: true,
           isGrid: true,
-          gridAddSettingsListener: false,
+          gridAddSettingsListener: true,
         );
         break;
       case BaseItemDtoType.artist:
-        gridItem = AlbumItem(
+        gridItem = ArtistItem(
           key: ValueKey(baseItem.id),
-          album: baseItem,
-          isPlaylist: false,
+          artist: baseItem,
           isGrid: true,
-          gridAddSettingsListener: false,
+          gridAddSettingsListener: true,
         );
         break;
       case BaseItemDtoType.track:
@@ -59,7 +59,7 @@ class AutoGridItem extends ConsumerWidget {
           album: baseItem,
           isPlaylist: false,
           isGrid: true,
-          gridAddSettingsListener: false,
+          gridAddSettingsListener: true,
         );
         break;
       default:
@@ -68,7 +68,7 @@ class AutoGridItem extends ConsumerWidget {
 
     return SizedBox(
       width: 120,
-      height: 120,
+      height: 175,
       child: gridItem,
     );
   }
