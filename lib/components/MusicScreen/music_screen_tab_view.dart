@@ -428,7 +428,6 @@ class _MusicScreenTabViewState extends State<MusicScreenTabView>
                           isPlaylist:
                               widget.tabContentType == TabContentType.playlists,
                           isGrid: true,
-                          gridAddSettingsListener: false,
                         ),
                       );
                     },
@@ -443,7 +442,8 @@ class _MusicScreenTabViewState extends State<MusicScreenTabView>
                       ? SliverGridDelegateWithFixedSizeTiles(
                           gridTileSize: FinampSettingsHelper
                               .finampSettings.fixedGridTileSize
-                              .toDouble())
+                                  .toDouble() +
+                              40)
                       : SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: MediaQuery.of(context).size.width >
                                   MediaQuery.of(context).size.height

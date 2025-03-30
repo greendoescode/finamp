@@ -23,7 +23,6 @@ class AutoGridItem extends ConsumerWidget {
           album: baseItem,
           isPlaylist: false,
           isGrid: true,
-          gridAddSettingsListener: true,
         );
         break;
       case BaseItemDtoType.playlist:
@@ -32,7 +31,6 @@ class AutoGridItem extends ConsumerWidget {
           album: baseItem,
           isPlaylist: true,
           isGrid: true,
-          gridAddSettingsListener: true,
         );
         break;
       case BaseItemDtoType.artist:
@@ -40,7 +38,6 @@ class AutoGridItem extends ConsumerWidget {
           key: ValueKey(baseItem.id),
           artist: baseItem,
           isGrid: true,
-          gridAddSettingsListener: true,
         );
         break;
       case BaseItemDtoType.track:
@@ -59,7 +56,6 @@ class AutoGridItem extends ConsumerWidget {
           album: baseItem,
           isPlaylist: false,
           isGrid: true,
-          gridAddSettingsListener: true,
         );
         break;
       default:

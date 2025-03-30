@@ -1,3 +1,4 @@
+import 'package:finamp/components/HomeScreen/finamp_navigation_bar.dart';
 import 'package:finamp/components/PlaybackHistoryScreen/playback_history_list.dart';
 import 'package:finamp/components/PlaybackHistoryScreen/share_offline_listens_button.dart';
 import 'package:flutter/material.dart';
@@ -29,6 +30,7 @@ class PlaybackHistoryScreen extends StatelessWidget {
         child: PlaybackHistoryList(),
       ),
       bottomSheet: const SafeArea(child: NowPlayingBar()),
+      bottomNavigationBar: const FinampNavigationBar(),
     );
   }
 }

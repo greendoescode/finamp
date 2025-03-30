@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:finamp/components/HomeScreen/finamp_navigation_bar.dart';
 import 'package:finamp/services/downloads_service.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -340,6 +341,7 @@ class _MusicScreenState extends ConsumerState<MusicScreen>
                     ],
             ),
             bottomSheet: const SafeArea(child: NowPlayingBar()),
+            bottomNavigationBar: const FinampNavigationBar(),
             drawer: const MusicScreenDrawer(),
             floatingActionButton: Padding(
               padding: EdgeInsets.only(

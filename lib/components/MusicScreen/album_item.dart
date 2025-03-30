@@ -54,7 +54,6 @@ class AlbumItem extends ConsumerStatefulWidget {
     this.parentType,
     this.onTap,
     this.isGrid = false,
-    this.gridAddSettingsListener = false,
   });
 
   /// The album (or item, I just used to call items albums before Finamp
@@ -75,11 +74,6 @@ class AlbumItem extends ConsumerStatefulWidget {
   /// If specified, use cards instead of list tiles. Use this if you want to use
   /// this widget in a grid view.
   final bool isGrid;
-
-  /// If true, the grid item will use a ValueListenableBuilder to check whether
-  /// or not to show the text. You'll want to set this to false if the
-  /// [AlbumItem] would be rebuilt by FinampSettings anyway.
-  final bool gridAddSettingsListener;
 
   @override
   ConsumerState<AlbumItem> createState() => _AlbumItemState();
@@ -678,7 +672,6 @@ class _AlbumItemState extends ConsumerState<AlbumItem> {
                 item: mutableAlbum,
                 onTap: onTap,
                 parentType: widget.parentType,
-                addSettingsListener: widget.gridAddSettingsListener,
               )
             : AlbumItemListTile(
                 item: mutableAlbum,

@@ -1,3 +1,4 @@
+import 'package:finamp/components/HomeScreen/finamp_navigation_bar.dart';
 import 'package:flutter/material.dart';
 
 import '../components/ArtistScreen/artist_screen_content.dart';
@@ -27,7 +28,8 @@ class ArtistScreen extends StatelessWidget {
           parent: artist,
         ),
       ),
-      bottomSheet: const NowPlayingBar(),
+      bottomNavigationBar: const FinampNavigationBar(),
+      bottomSheet: const SafeArea(child: NowPlayingBar()),
     );
   }
 }

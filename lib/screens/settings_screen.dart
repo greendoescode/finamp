@@ -1,3 +1,4 @@
+import 'package:finamp/components/HomeScreen/finamp_navigation_bar.dart';
 import 'package:finamp/screens/interaction_settings_screen.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -153,6 +154,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           )
         ],
       ),
+      bottomNavigationBar: const FinampNavigationBar(),
       body: ListView(
         children: [
           ListTile(
