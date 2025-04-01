@@ -29,7 +29,7 @@ class PlaybackHistoryScreen extends StatelessWidget {
         padding: EdgeInsets.only(left: 0.0, right: 0.0, top: 16.0, bottom: 0.0),
         child: PlaybackHistoryList(),
       ),
-      bottomSheet: const SafeArea(child: NowPlayingBar()),
+      bottomSheet: NowPlayingBar(),
       bottomNavigationBar: const FinampNavigationBar(),
     );
   }

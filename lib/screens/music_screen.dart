@@ -340,7 +340,7 @@ class _MusicScreenState extends ConsumerState<MusicScreen>
                       ),
                     ],
             ),
-            bottomSheet: const SafeArea(child: NowPlayingBar()),
+            bottomSheet: NowPlayingBar(),
             bottomNavigationBar: const FinampNavigationBar(),
             drawer: const MusicScreenDrawer(),
             floatingActionButton: Padding(

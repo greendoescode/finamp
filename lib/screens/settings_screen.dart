@@ -154,7 +154,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
           )
         ],
       ),
-      bottomNavigationBar: const FinampNavigationBar(),
       body: ListView(
         children: [
           ListTile(

@@ -113,8 +113,8 @@ class _AlbumScreenState extends State<AlbumScreen> {
               );
             }),
       ),
+      bottomSheet: NowPlayingBar(),
       bottomNavigationBar: const FinampNavigationBar(),
-      bottomSheet: const SafeArea(child: NowPlayingBar()),
     );
   }
 }

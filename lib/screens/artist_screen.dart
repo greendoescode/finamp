@@ -28,8 +28,8 @@ class ArtistScreen extends StatelessWidget {
           parent: artist,
         ),
       ),
+      bottomSheet: NowPlayingBar(),
       bottomNavigationBar: const FinampNavigationBar(),
-      bottomSheet: const SafeArea(child: NowPlayingBar()),
     );
   }
 }
