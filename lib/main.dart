@@ -6,6 +6,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:audio_session/audio_session.dart';
 import 'package:background_downloader/background_downloader.dart';
 import 'package:finamp/color_schemes.g.dart';
+import 'package:finamp/components/HomeScreen/show_all_screen.dart';
 import 'package:finamp/gen/assets.gen.dart';
 import 'package:finamp/screens/album_settings_screen.dart';
 import 'package:finamp/screens/downloads_settings_screen.dart';
@@ -533,6 +534,7 @@ class _FinampState extends State<Finamp> with WindowListener {
                       LoginScreen.routeName: (context) => const LoginScreen(),
                       ViewSelector.routeName: (context) => const ViewSelector(),
                       HomeScreen.routeName: (context) => const HomeScreen(),
+                      ShowAllScreen.routeName: (context) => const ShowAllScreen(),
                       MusicScreen.routeName: (context) => const MusicScreen(),
                       AlbumScreen.routeName: (context) => const AlbumScreen(),
                       ArtistScreen.routeName: (context) => const ArtistScreen(),

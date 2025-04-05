@@ -2,6 +2,8 @@ import 'package:finamp/components/AudioServiceSettingsScreen/track_shuffle_item_
 import 'package:finamp/components/Buttons/cta_small.dart';
 import 'package:finamp/components/HomeScreen/auto_grid_item.dart';
 import 'package:finamp/components/HomeScreen/finamp_home_screen_header.dart';
+import 'package:finamp/components/HomeScreen/show_all_button.dart';
+import 'package:finamp/components/HomeScreen/show_all_screen.dart';
 import 'package:finamp/components/MusicScreen/album_item.dart';
 import 'package:finamp/components/global_snackbar.dart';
 import 'package:finamp/models/finamp_models.dart';
@@ -141,34 +143,24 @@ class _HomeScreenContentState extends ConsumerState<HomeScreenContent> {
               ],
             ),
             const SizedBox(height: 24),
-            _buildSection(
-                'Pins*',
-                _buildHorizontalList(loadHomeSectionItems(HomeScreenSectionInfo(
+            _buildSection(HomeScreenSectionInfo(
                     type: HomeScreenSectionType.collection,
-                    itemId: BaseItemId(""))))),
+                itemId: BaseItemId(""))),
             _buildSection(
-                'Listen Again*',
-                _buildHorizontalList(loadHomeSectionItems(HomeScreenSectionInfo(
-                    type: HomeScreenSectionType.listenAgain)))),
+                HomeScreenSectionInfo(type: HomeScreenSectionType.listenAgain)),
             const SizedBox(height: 8),
             _buildSection(
-                'Newly Added*',
-                _buildHorizontalList(
-                    loadHomeSectionItems(HomeScreenSectionInfo(
-                    type: HomeScreenSectionType.newlyAdded)))),
+                HomeScreenSectionInfo(type: HomeScreenSectionType.newlyAdded)),
             const SizedBox(height: 8),
-            _buildSection(
-                'Favorite Artists*',
-                _buildHorizontalList(loadHomeSectionItems(
-                    HomeScreenSectionInfo(
-                    type: HomeScreenSectionType.favoriteArtists)))),
+            _buildSection(HomeScreenSectionInfo(
+                type: HomeScreenSectionType.favoriteArtists)),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildSection(String title, Widget content) {
+  Widget _buildSection(HomeScreenSectionInfo sectionInfo) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -184,7 +176,7 @@ class _HomeScreenContentState extends ConsumerState<HomeScreenContent> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text(
-                title,
+                sectionInfo.type.toLocalisedString(context),
                 style: TextTheme.of(context).titleSmall?.copyWith(
                       fontWeight: FontWeight.w500,
                       fontSize: 18,
@@ -193,15 +185,17 @@ class _HomeScreenContentState extends ConsumerState<HomeScreenContent> {
                           : Colors.white,
                     ),
               ),
-              Icon(TablerIcons.chevron_right,
-                  color: Theme.of(context).brightness == Brightness.light
-                      ? Colors.black
-                      : Colors.white),
+              ShowAllButton(
+                onPressed: () {
+                  Navigator.pushNamed(context, ShowAllScreen.routeName,
+                      arguments: sectionInfo);
+                },
+              ),
             ],
           ),
         ),
         const SizedBox(height: 8),
-        content,
+        _buildHorizontalList(loadHomeSectionItems(sectionInfo: sectionInfo)),
       ],
     );
   }
@@ -273,15 +267,16 @@ class _HomeScreenContentState extends ConsumerState<HomeScreenContent> {
   }
 }
 
-Future<List<BaseItemDto>?> loadHomeSectionItems(
-    HomeScreenSectionInfo sectionInfo) async {
+Future<List<BaseItemDto>?> loadHomeSectionItems({
+  required HomeScreenSectionInfo sectionInfo,
+  int startIndex = 0,
+  int limit = 10,
+}) async {
   final jellyfinApiHelper = GetIt.instance<JellyfinApiHelper>();
   final finampUserHelper = GetIt.instance<FinampUserHelper>();
   final settings = FinampSettingsHelper.finampSettings;
 
   final Future<List<BaseItemDto>?> newItemsFuture;
-
-  final int amountOfItems = 10;
 
   switch (sectionInfo.type) {
     case HomeScreenSectionType.listenAgain:
@@ -294,8 +289,8 @@ Future<List<BaseItemDto>?> loadHomeSectionItems(
         sortBy: SortBy.datePlayed.jellyfinName(null),
         sortOrder: SortOrder.descending.toString(),
         // filters: settings.onlyShowFavourites ? "IsFavorite" : null,
-        startIndex: 0,
-        limit: amountOfItems,
+        startIndex: startIndex,
+        limit: limit,
       );
       break;
     case HomeScreenSectionType.newlyAdded:
@@ -308,8 +303,8 @@ Future<List<BaseItemDto>?> loadHomeSectionItems(
         sortBy: SortBy.dateCreated.jellyfinName(null),
         sortOrder: SortOrder.descending.toString(),
         // filters: settings.onlyShowFavourites ? "IsFavorite" : null,
-        startIndex: 0,
-        limit: amountOfItems,
+        startIndex: startIndex,
+        limit: limit,
       );
       break;
     case HomeScreenSectionType.favoriteArtists:
@@ -321,8 +316,8 @@ Future<List<BaseItemDto>?> loadHomeSectionItems(
         sortBy: SortBy.datePlayed.jellyfinName(null),
         sortOrder: SortOrder.descending.toString(),
         filters: "IsFavorite",
-        startIndex: 0,
-        limit: amountOfItems,
+        startIndex: startIndex,
+        limit: limit,
       );
       break;
     case HomeScreenSectionType.collection:
@@ -340,8 +335,8 @@ Future<List<BaseItemDto>?> loadHomeSectionItems(
         recursive:
             false, //!!! prevent loading tracks and albums from inside the collection items
         // filters: "IsFavorite",
-        startIndex: 0,
-        limit: amountOfItems,
+        startIndex: startIndex,
+        limit: limit,
       );
       break;
   }
