@@ -1407,7 +1407,7 @@ class DownloadsService {
   /// + onlyFavorites - return only favorite items
   Future<List<DownloadStub>> getAllCollections(
       {String? nameFilter,
-      BaseItemDtoType? baseTypeFilter,
+      List<BaseItemDtoType> includeItemTypes = const [],
       BaseItemDto? relatedTo,
       bool fullyDownloaded = false,
       BaseItemId? viewFilter,
@@ -1415,7 +1415,7 @@ class DownloadsService {
       bool nullableViewFilters = true,
       bool onlyFavorites = false}) {
     List<int> favoriteIds = [];
-    if (onlyFavorites && baseTypeFilter != BaseItemDtoType.genre) {
+    if (onlyFavorites && includeItemTypes != BaseItemDtoType.genre) {
       favoriteIds = _getFavoriteIds() ?? [];
     }
     return _isar.downloadItems
@@ -1424,13 +1424,15 @@ class DownloadsService {
         .filter()
         .optional(nameFilter != null,
             (q) => q.nameContains(nameFilter!, caseSensitive: false))
-        .optional(baseTypeFilter != null,
-            (q) => q.baseItemTypeEqualTo(baseTypeFilter!))
+        .optional(
+            includeItemTypes.isNotEmpty,
+            (q) => q.anyOf(
+                includeItemTypes, (q, type) => q.baseItemTypeEqualTo(type)))
         // If allPlaylists is info downloaded, we may have info for empty
         // playlists.  We should only return playlists with at least 1 required
         // track in them.
         .optional(
-            baseTypeFilter == BaseItemDtoType.playlist,
+            includeItemTypes.contains(BaseItemDtoType.playlist),
             (q) => q.info((q) =>
                 q.typeEqualTo(DownloadItemType.track).requiredByIsNotEmpty()))
         .optional(

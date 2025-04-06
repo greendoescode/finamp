@@ -58,7 +58,7 @@ class _ArtistScreenContentState extends State<ArtistScreenContent> {
         Future.sync(() async {
           final List<DownloadStub> artistAlbums =
               await _downloadsService.getAllCollections(
-                  baseTypeFilter: BaseItemDtoType.album,
+                  includeItemTypes: [BaseItemDtoType.album],
                   relatedTo: widget.parent);
           artistAlbums.sort((a, b) => (a.baseItem?.premiereDate ?? "")
               .compareTo(b.baseItem!.premiereDate ?? ""));
@@ -68,7 +68,7 @@ class _ArtistScreenContentState extends State<ArtistScreenContent> {
       allTracks = Future.sync(() async {
         final List<DownloadStub> artistAlbums =
             await _downloadsService.getAllCollections(
-                baseTypeFilter: BaseItemDtoType.album,
+                includeItemTypes: [BaseItemDtoType.album],
                 relatedTo: widget.parent);
         artistAlbums.sort((a, b) => (a.name).compareTo(b.name));
 

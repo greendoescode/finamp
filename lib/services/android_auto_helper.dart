@@ -85,7 +85,7 @@ class AndroidAutoHelper {
 
         final List<BaseItemDto> genreAlbums =
             (await _downloadsService.getAllCollections(
-                    baseTypeFilter: BaseItemDtoType.album,
+                    includeItemTypes: [BaseItemDtoType.album],
                     relatedTo: genreBaseItem))
                 .toList()
                 .map((e) => e.baseItem)
@@ -99,7 +99,7 @@ class AndroidAutoHelper {
 
         final List<BaseItemDto> artistAlbums =
             (await _downloadsService.getAllCollections(
-                    baseTypeFilter: BaseItemDtoType.album,
+                    includeItemTypes: [BaseItemDtoType.album],
                     relatedTo: artistBaseItem))
                 .toList()
                 .map((e) => e.baseItem)
@@ -347,7 +347,7 @@ class AndroidAutoHelper {
           List<DownloadStub>? offlineItems =
               await _downloadsService.getAllCollections(
                   nameFilter: searchTerm,
-                  baseTypeFilter: TabContentType.playlists.itemType,
+                  includeItemTypes: [BaseItemDtoType.playlist],
                   fullyDownloaded: false,
                   viewFilter: finampUserHelper.currentUser?.currentView?.id,
                   childViewFilter: null,
@@ -1075,14 +1075,14 @@ class AndroidAutoHelper {
       } else {
         offlineItems = await _downloadsService.getAllCollections(
             nameFilter: searchTerm,
-            baseTypeFilter: itemTypes.first,
+            includeItemTypes: itemTypes,
             fullyDownloaded: false,
             viewFilter: itemTypes.first == TabContentType.albums.itemType
                 ? finampUserHelper.currentUser?.currentView?.id
                 : null,
             childViewFilter:
-                (itemTypes.first != TabContentType.albums.itemType &&
-                        itemTypes.first != TabContentType.playlists.itemType)
+                (itemTypes.contains(TabContentType.albums.itemType) &&
+                        itemTypes.contains(TabContentType.playlists.itemType))
                     ? finampUserHelper.currentUser?.currentView?.id
                     : null,
             nullableViewFilters:

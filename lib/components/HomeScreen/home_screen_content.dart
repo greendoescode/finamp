@@ -306,7 +306,8 @@ Future<List<BaseItemDto>?> loadHomeSectionItems({
       break;
     case HomeScreenSectionType.newlyAdded:
       newItemsFuture = jellyfinApiHelper.getItems(
-        parentItem: finampUserHelper.currentUser?.currentView,
+        parentItem: finampUserHelper.currentUser
+            ?.currentView, //FIXME Jellyfin can't query (playlists) and (albums of a specific library) at the same time yet
         includeItemTypes: [
           BaseItemDtoType.album.idString,
           BaseItemDtoType.playlist.idString
@@ -369,9 +370,12 @@ Future<List<BaseItemDto>?> loadHomeSectionItemsOffline({
 
   switch (sectionInfo.type) {
     case HomeScreenSectionType.listenAgain:
+      //FIXME this seems to also return metadata-only albums which don't have any downloaded children
       offlineItems = await downloadsService.getAllCollections(
-          baseTypeFilter:
-              BaseItemDtoType.album, //FIXME support allowing multiple types
+          includeItemTypes: [
+            BaseItemDtoType.album,
+            BaseItemDtoType.playlist
+          ], //FIXME support allowing multiple types
           fullyDownloaded: settings.onlyShowFullyDownloaded,
           viewFilter: finampUserHelper.currentUser?.currentViewId,
           childViewFilter: null,
@@ -385,8 +389,10 @@ Future<List<BaseItemDto>?> loadHomeSectionItemsOffline({
 
     case HomeScreenSectionType.newlyAdded:
       offlineItems = await downloadsService.getAllCollections(
-          baseTypeFilter:
-              BaseItemDtoType.album, //FIXME support allowing multiple types
+          includeItemTypes: [
+            BaseItemDtoType.album,
+            BaseItemDtoType.playlist
+          ], //FIXME support allowing multiple types
           fullyDownloaded: settings.onlyShowFullyDownloaded,
           viewFilter: finampUserHelper.currentUser?.currentViewId,
           childViewFilter: null,
@@ -398,13 +404,14 @@ Future<List<BaseItemDto>?> loadHomeSectionItemsOffline({
       break;
     case HomeScreenSectionType.favoriteArtists:
       offlineItems = await downloadsService.getAllCollections(
-          baseTypeFilter: BaseItemDtoType.artist,
+        includeItemTypes: [BaseItemDtoType.artist],
           fullyDownloaded: settings.onlyShowFullyDownloaded,
           viewFilter: finampUserHelper.currentUser?.currentViewId,
           childViewFilter: null,
           nullableViewFilters: false,
           onlyFavorites:
-              settings.onlyShowFavourites && settings.trackOfflineFavorites);
+            settings.onlyShowFavourites && settings.trackOfflineFavorites,
+      );
       items = offlineItems.map((e) => e.baseItem).nonNulls.toList();
       items = sortItems(items, SortBy.datePlayed, SortOrder.descending);
       break;
@@ -413,5 +420,5 @@ Future<List<BaseItemDto>?> loadHomeSectionItemsOffline({
       items = offlineItems.map((e) => e.baseItem).nonNulls.toList();
   }
 
-  return items;
+  return items.take(limit).toList();
 }

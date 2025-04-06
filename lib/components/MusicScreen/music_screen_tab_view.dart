@@ -150,7 +150,7 @@ class _MusicScreenTabViewState extends State<MusicScreenTabView>
     } else {
       offlineItems = await _isarDownloader.getAllCollections(
           nameFilter: widget.searchTerm,
-          baseTypeFilter: widget.tabContentType.itemType,
+          includeItemTypes: [widget.tabContentType.itemType],
           fullyDownloaded: settings.onlyShowFullyDownloaded,
           viewFilter: widget.tabContentType == TabContentType.albums
               ? widget.view?.id
