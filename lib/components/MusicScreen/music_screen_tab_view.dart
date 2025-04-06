@@ -568,6 +568,14 @@ List<BaseItemDto> sortItems(
           } else {
             return a.dateCreated!.compareTo(b.dateCreated!);
           }
+        case SortBy.datePlayed:
+          if (a.userData?.lastPlayedDate == null ||
+              b.userData?.lastPlayedDate == null) {
+            return 0;
+          } else {
+            return a.userData!.lastPlayedDate!
+                .compareTo(b.userData!.lastPlayedDate!);
+          }
         case SortBy.premiereDate:
           if (a.premiereDate == null || b.premiereDate == null) {
             return 0;
