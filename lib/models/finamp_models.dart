@@ -2675,4 +2675,15 @@ class HomeScreenSectionInfo {
   String toString() {
     return jsonEncode(toJson());
   }
+
+  @override
+  bool operator ==(Object other) {
+    return other is HomeScreenSectionInfo &&
+        other.type == type &&
+        other.itemId == itemId;
+  }
+
+  @override
+  @ignore
+  int get hashCode => Object.hash(type, itemId);
 }

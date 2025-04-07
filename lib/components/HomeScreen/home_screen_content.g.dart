@@ -7,7 +7,7 @@ part of 'home_screen_content.dart';
 // **************************************************************************
 
 String _$loadHomeSectionItemsHash() =>
-    r'885a0d41386aa5a336e9ccab9f153a612f48abaf';
+    r'05a9a4c66ddec825de1cedd3b6c8167f939bdcea';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -80,8 +80,7 @@ class LoadHomeSectionItemsFamily
 }
 
 /// See also [loadHomeSectionItems].
-class LoadHomeSectionItemsProvider
-    extends AutoDisposeFutureProvider<List<BaseItemDto>?> {
+class LoadHomeSectionItemsProvider extends FutureProvider<List<BaseItemDto>?> {
   /// See also [loadHomeSectionItems].
   LoadHomeSectionItemsProvider({
     required HomeScreenSectionInfo sectionInfo,
@@ -146,7 +145,7 @@ class LoadHomeSectionItemsProvider
   }
 
   @override
-  AutoDisposeFutureProviderElement<List<BaseItemDto>?> createElement() {
+  FutureProviderElement<List<BaseItemDto>?> createElement() {
     return _LoadHomeSectionItemsProviderElement(this);
   }
 
@@ -171,8 +170,7 @@ class LoadHomeSectionItemsProvider
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-mixin LoadHomeSectionItemsRef
-    on AutoDisposeFutureProviderRef<List<BaseItemDto>?> {
+mixin LoadHomeSectionItemsRef on FutureProviderRef<List<BaseItemDto>?> {
   /// The parameter `sectionInfo` of this provider.
   HomeScreenSectionInfo get sectionInfo;
 
@@ -184,7 +182,7 @@ mixin LoadHomeSectionItemsRef
 }
 
 class _LoadHomeSectionItemsProviderElement
-    extends AutoDisposeFutureProviderElement<List<BaseItemDto>?>
+    extends FutureProviderElement<List<BaseItemDto>?>
     with LoadHomeSectionItemsRef {
   _LoadHomeSectionItemsProviderElement(super.provider);
 

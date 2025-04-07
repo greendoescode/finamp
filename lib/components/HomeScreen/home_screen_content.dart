@@ -61,29 +61,7 @@ class _HomeScreenContentState extends ConsumerState<HomeScreenContent> {
     return SafeArea(
       bottom: false,
       child: RefreshIndicator(
-        onRefresh: () async => Future.wait([
-          ref.refresh(loadHomeSectionItemsProvider(
-            sectionInfo: HomeScreenSectionInfo(
-              type: HomeScreenSectionType.listenAgain,
-            ),
-          ).future),
-          ref.refresh(loadHomeSectionItemsProvider(
-            sectionInfo: HomeScreenSectionInfo(
-              type: HomeScreenSectionType.newlyAdded,
-            ),
-          ).future),
-          ref.refresh(loadHomeSectionItemsProvider(
-            sectionInfo: HomeScreenSectionInfo(
-              type: HomeScreenSectionType.favoriteArtists,
-            ),
-          ).future),
-          ref.refresh(loadHomeSectionItemsProvider(
-            sectionInfo: HomeScreenSectionInfo(
-              type: HomeScreenSectionType.collection,
-              itemId: BaseItemId(""),
-            ),
-          ).future),
-        ]),
+        onRefresh: () async => ref.invalidate(loadHomeSectionItemsProvider),
         child: SingleChildScrollView(
           padding: const EdgeInsets.only(
               left: 16.0, right: 16.0, top: 16.0, bottom: 200.0),
@@ -311,7 +289,7 @@ class _HomeScreenContentState extends ConsumerState<HomeScreenContent> {
   }
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 Future<List<BaseItemDto>?> loadHomeSectionItems(
   Ref ref, {
   required HomeScreenSectionInfo sectionInfo,

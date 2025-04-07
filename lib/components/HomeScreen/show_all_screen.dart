@@ -82,13 +82,14 @@ class _ShowAllScreenState extends ConsumerState<ShowAllScreen>
     super.didChangeDependencies();
     sectionInfo =
         ModalRoute.of(context)!.settings.arguments as HomeScreenSectionInfo;
-    final prefetchedItems = ref
-        .read(loadHomeSectionItemsProvider(
-          sectionInfo: sectionInfo,
-          startIndex: 0,
-          limit: homeScreenSectionItemLimit,
-        ))
-        .value;
+    final itemsProviderInstance = loadHomeSectionItemsProvider(
+      sectionInfo: sectionInfo,
+      startIndex: 0,
+      limit: homeScreenSectionItemLimit,
+    );
+    final prefetchedItems = ref.exists(itemsProviderInstance)
+        ? ref.read(itemsProviderInstance).value
+        : null;
     if (prefetchedItems != null) {
       _pagingController.appendPage(prefetchedItems, prefetchedItems.length);
     }
